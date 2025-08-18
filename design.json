@@ -1,0 +1,103 @@
+{
+  "app": "BigMatch",
+  "screens": [
+    {
+      "id": "select_event",
+      "title": "Select mod",
+      "components": [
+        {
+          "type": "option_card",
+          "label": "CUP",
+          "description": "Each group plays a round-robin tournament",
+          "icon": "trophy",
+          "color": "#FF004D"
+        },
+        {
+          "type": "option_card",
+          "label": "PLAYOFF",
+          "description": "Knockout competitions",
+          "icon": "medal",
+          "color": "#00FFD1"
+        },
+        {
+          "type": "option_card",
+          "label": "LEAGUE",
+          "description": "Play a relatively balanced schedule with each other player",
+          "icon": "handshake",
+          "color": "#00FFD1"
+        }
+      ],
+      "navigation": {
+        "next": "configure_event"
+      }
+    },
+    {
+      "id": "configure_event",
+      "title": "Rules",
+      "header": {
+        "event_name_placeholder": "Enter name",
+        "date_placeholder": "15/06/2018",
+        "event_type": "LEAGUE",
+        "color": "#FF004D"
+      },
+      "group_stage": {
+        "number_of_rounds": {
+          "type": "stepper",
+          "min": 5,
+          "max": 9,
+          "default": 7,
+          "selected": 7
+        },
+        "points_for_win": {
+          "type": "stepper",
+          "options": [0, 1, 2, 3, 4],
+          "default": 2,
+          "selected": 2
+        },
+        "points_for_draw": {
+          "type": "stepper",
+          "options": [0, 1, 2],
+          "default": 0,
+          "selected": 0
+        },
+        "points_for_loss": {
+          "type": "stepper",
+          "options": [0, 1, 2],
+          "default": 1,
+          "selected": 1
+        }
+      },
+      "navigation": {
+        "next": "create_event"
+      }
+    },
+    {
+      "id": "create_event",
+      "title": "Create Event",
+      "fields": [
+        {
+          "type": "text_input",
+          "label": "Event Name",
+          "placeholder": "Enter name"
+        },
+        {
+          "type": "date_picker",
+          "label": "Event Date",
+          "placeholder": "DD/MM/YYYY"
+        },
+        {
+          "type": "dropdown",
+          "label": "Event Type",
+          "options": ["CUP", "PLAYOFF", "LEAGUE"]
+        }
+      ],
+      "actions": [
+        {
+          "type": "button",
+          "label": "Create",
+          "color": "#FF004D"
+        }
+      ]
+    }
+  ]
+}
