@@ -37,7 +37,7 @@ export default function TabNavigation({
   ];
 
   return (
-    <div className="bg-white border-t border-gray-200 px-4 py-3">
+    <div className="bg-white border-t border-gray-200 px-4 py-3 fixed bottom-0 left-0 right-0 z-50 md:hidden block">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {tabs.map((tab) => (
           <button

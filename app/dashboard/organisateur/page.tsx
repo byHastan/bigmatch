@@ -1,18 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Settings, Target, Users } from "lucide-react";
+import { Calendar, Settings, Target, Users } from "lucide-react";
 import { useState } from "react";
 
 import RoleGuard from "@/components/auth/RoleGuard";
 import {
   DashboardHeader,
   ErrorMessage,
-  EventStats,
   HomeEventsList,
-  HomeHeader,
   LoadingSpinner,
-  QuickActions,
   TabNavigation,
 } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -42,26 +39,26 @@ export default function OrganisateurDashboard() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <HomeHeader
-              eventsCount={events.filter((e) => e.status === "ACTIVE").length}
-            />
-
-            <QuickActions />
-
-            <EventStats events={events} />
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Mes Événements
+            <div className="bg-white flex flex-col gap-3 justify-center items-center rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900">
+                Bienvenue, <span className="text-orange-600">Organisateur</span>
               </h3>
-              {loading ? (
-                <LoadingSpinner />
-              ) : error ? (
-                <ErrorMessage message={error} onRetry={refetch} />
-              ) : (
-                <HomeEventsList events={events} />
-              )}
+              <Button
+                onClick={() => router.push("/dashboard/organisateur/events")}
+                variant="outline"
+                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Gérer mes événements
+              </Button>
             </div>
+            {loading ? (
+              <LoadingSpinner />
+            ) : error ? (
+              <ErrorMessage message={error} onRetry={refetch} />
+            ) : (
+              <HomeEventsList events={events} />
+            )}
           </motion.div>
         );
       case "events":

@@ -1,6 +1,10 @@
 export { default as DashboardHeader } from "./DashboardHeader";
+export { default as DeleteConfirmation } from "./DeleteConfirmation";
 export { default as ErrorMessage } from "./ErrorMessage";
 export { default as EventCard } from "./EventCard";
+export { default as EventFilters } from "./EventFilters";
+export { default as EventManagementCard } from "./EventManagementCard";
+export { default as EventManagementStats } from "./EventManagementStats";
 export { default as EventsList } from "./EventsList";
 export { default as EventStats } from "./EventStats";
 export { default as HomeEventCard } from "./HomeEventCard";

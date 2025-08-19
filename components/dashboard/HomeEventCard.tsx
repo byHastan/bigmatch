@@ -103,16 +103,16 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
 
           {/* Badges d'information */}
           <div className="flex flex-wrap gap-2">
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+            <div className="bg-white text-orange-600 bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
               {formatDate(event.date)} | {formatTime(event.date)}
             </div>
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
+            <div className="bg-white text-orange-600 bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
               <Users className="w-3 h-3" />
               <span>
                 {event.currentTeams}/{event.maxTeams || "∞"} équipes
               </span>
             </div>
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+            <div className="bg-white text-orange-600 bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
               {formatType(event.type)}
             </div>
           </div>
