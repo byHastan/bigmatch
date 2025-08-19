@@ -31,6 +31,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   userRoles     UserRole[]
+  Event         Event[]
 
   @@map("user")
 }
@@ -89,4 +90,56 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime?
   updatedAt  DateTime?
+}
+
+model Event {
+  id               String   @id @default(uuid())
+  name             String
+  description      String?
+  type             String // CUP, PLAYOFF, LEAGUE
+  date             DateTime
+  time             String?
+  location         String?
+  rules            Json?
+  registrationCode String   @unique
+  maxTeams         Int?
+  maxPlayers       Int?
+  status           String   @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, CANCELLED
+  organizerId      String
+  organizer        User     @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  teams            Team[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("event")
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  logo        String?
+  sport       String?
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  players     Player[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("team")
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  position  String?
+  number    Int?
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("player")
 }
