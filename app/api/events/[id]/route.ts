@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 // Récupérer un événement spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const event = await prisma.event.findUnique({
       where: { id },
@@ -88,10 +88,10 @@ export async function GET(
 // Mettre à jour un événement
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const {
       name,
@@ -120,8 +120,8 @@ export async function PUT(
       );
     }
 
-    // Validation des champs obligatoires
-    if (!name || !type || !date) {
+    // Validation des champs obligatoires seulement si on met à jour ces champs
+    if (name !== undefined && (!name || !type || !date)) {
       return NextResponse.json(
         {
           error: "Champs obligatoires manquants",
@@ -131,28 +131,33 @@ export async function PUT(
       );
     }
 
-    // Validation du type d'événement
-    const validTypes = ["MATCH", "CHAMPIONNAT", "COUPE"];
-    if (!validTypes.includes(type)) {
-      return NextResponse.json(
-        {
-          error: "Type d'événement invalide",
-          validTypes,
-        },
-        { status: 400 }
-      );
+    // Validation du type d'événement seulement si on le met à jour
+    if (type !== undefined) {
+      const validTypes = ["MATCH", "CHAMPIONNAT", "COUPE"];
+      if (!validTypes.includes(type)) {
+        return NextResponse.json(
+          {
+            error: "Type d'événement invalide",
+            validTypes,
+          },
+          { status: 400 }
+        );
+      }
     }
 
-    // Validation de la date (doit être dans le futur)
-    const eventDate = new Date(date);
-    const now = new Date();
-    if (eventDate <= now) {
-      return NextResponse.json(
-        {
-          error: "La date de l'événement doit être dans le futur",
-        },
-        { status: 400 }
-      );
+    // Validation de la date seulement si on la met à jour
+    let eventDate: Date | undefined;
+    if (date !== undefined) {
+      eventDate = new Date(date);
+      const now = new Date();
+      if (eventDate <= now) {
+        return NextResponse.json(
+          {
+            error: "La date de l'événement doit être dans le futur",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Validation du statut
@@ -167,22 +172,27 @@ export async function PUT(
       );
     }
 
+    // Préparer les données de mise à jour
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    // Ajouter seulement les champs qui sont définis
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (type !== undefined) updateData.type = type;
+    if (eventDate !== undefined) updateData.date = eventDate;
+    if (time !== undefined) updateData.time = time;
+    if (location !== undefined) updateData.location = location;
+    if (rules !== undefined) updateData.rules = rules;
+    if (maxTeams !== undefined) updateData.maxTeams = maxTeams;
+    if (maxPlayers !== undefined) updateData.maxPlayers = maxPlayers;
+    if (status !== undefined) updateData.status = status;
+
     // Mettre à jour l'événement
     const updatedEvent = await prisma.event.update({
       where: { id },
-      data: {
-        name,
-        description,
-        type,
-        date: eventDate,
-        time,
-        location,
-        rules: rules || existingEvent.rules,
-        maxTeams: maxTeams || existingEvent.maxTeams,
-        maxPlayers: maxPlayers || existingEvent.maxPlayers,
-        status: status || existingEvent.status,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({
@@ -212,10 +222,10 @@ export async function PUT(
 // Supprimer un événement
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Vérifier que l'événement existe
     const existingEvent = await prisma.event.findUnique({

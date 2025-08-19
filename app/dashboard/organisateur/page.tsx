@@ -22,11 +22,6 @@ export default function OrganisateurDashboard() {
   const [activeTab, setActiveTab] = useState("home");
   const { events, loading, error, refetch } = useEvents();
 
-  const handleManageEvent = (eventId: string) => {
-    console.log(`Gérer l'événement ${eventId}`);
-    // TODO: Implémenter la navigation vers la page de gestion de l'événement
-  };
-
   const renderTabContent = () => {
     switch (activeTab) {
       case "home":

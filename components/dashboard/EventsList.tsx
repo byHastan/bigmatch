@@ -3,10 +3,9 @@ import EventCard from "./EventCard";
 
 interface EventsListProps {
   events: Event[];
-  onManageEvent?: (eventId: string) => void;
 }
 
-export default function EventsList({ events, onManageEvent }: EventsListProps) {
+export default function EventsList({ events }: EventsListProps) {
   if (events.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow">
@@ -34,7 +33,7 @@ export default function EventsList({ events, onManageEvent }: EventsListProps) {
       </div>
       <div className="divide-y divide-gray-200">
         {events.map((event) => (
-          <EventCard key={event.id} event={event} onManage={onManageEvent} />
+          <EventCard key={event.id} event={event} />
         ))}
       </div>
     </div>

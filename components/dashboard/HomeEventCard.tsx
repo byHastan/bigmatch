@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Event } from "@/src/hooks/useEvents";
 import { Crown, MapPin, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface HomeEventCardProps {
   event: Event;
 }
 
 export default function HomeEventCard({ event }: HomeEventCardProps) {
-  const router = useRouter();
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -62,11 +60,6 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
       default:
         return "bg-gray-500";
     }
-  };
-
-  const handleManageEvent = () => {
-    // TODO: Naviguer vers la page de gestion de l'événement
-    console.log(`Gérer l'événement ${event.id}`);
   };
 
   return (
@@ -136,12 +129,11 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
                 : "Annulé"}
             </span>
           </div>
-          <Button
-            onClick={handleManageEvent}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
-          >
-            Gérer
-          </Button>
+          <Link href={`/events/${event.id}`}>
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
+              Gérer
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

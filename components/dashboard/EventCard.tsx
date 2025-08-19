@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Event } from "@/src/hooks/useEvents";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, Eye, MapPin, Users } from "lucide-react";
+import Link from "next/link";
 
 interface EventCardProps {
   event: Event;
-  onManage?: (eventId: string) => void;
 }
 
-export default function EventCard({ event, onManage }: EventCardProps) {
+export default function EventCard({ event }: EventCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "ACTIVE":
@@ -97,13 +97,17 @@ export default function EventCard({ event, onManage }: EventCardProps) {
           >
             {getStatusLabel(event.status)}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onManage?.(event.id)}
-          >
-            Gérer
-          </Button>
+          <Link href={`/events/${event.id}`}>
+            <Button variant="outline" size="sm">
+              <Eye className="w-4 h-4 mr-2" />
+              Voir
+            </Button>
+          </Link>
+          <Link href={`/events/${event.id}`}>
+            <Button variant="outline" size="sm">
+              Gérer
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
