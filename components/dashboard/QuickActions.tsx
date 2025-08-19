@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LucideIcon, Plus, Settings, Users } from "lucide-react";
+import { LucideIcon, Plus, Settings, Users, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface ActionButton {
@@ -26,28 +26,28 @@ export default function QuickActions({ actions }: QuickActionsProps) {
       onClick: () => router.push("/create-event"),
       variant: "default",
       className:
-        "h-20 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white",
+        "h-20 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl",
     },
     {
       icon: Users,
-      label: "Gérer les équipes",
-      onClick: () => {},
+      label: "Gérer les inscriptions",
+      onClick: () => router.push("/dashboard/organisateur/inscriptions"),
       variant: "outline",
-      className: "h-20 flex flex-col items-center justify-center space-y-2",
+      className: "h-20 flex flex-col items-center justify-center space-y-2 rounded-xl border-2 border-orange-200 hover:border-orange-300 hover:bg-orange-50",
     },
     {
-      icon: Settings,
-      label: "Paramètres",
+      icon: Calendar,
+      label: "Voir tous les événements",
       onClick: () => {},
       variant: "outline",
-      className: "h-20 flex flex-col items-center justify-center space-y-2",
+      className: "h-20 flex flex-col items-center justify-center space-y-2 rounded-xl border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50",
     },
   ];
 
   const actionsToRender = actions || defaultActions;
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">Actions rapides</h2>
       </div>
@@ -60,7 +60,7 @@ export default function QuickActions({ actions }: QuickActionsProps) {
             onClick={action.onClick}
           >
             <action.icon className="h-6 w-6" />
-            <span>{action.label}</span>
+            <span className="text-sm font-medium">{action.label}</span>
           </Button>
         ))}
       </div>

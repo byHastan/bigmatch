@@ -1,9 +1,11 @@
 "use client";
 
+import { useUserRole } from "@/src/hooks/useUserRole";
+import { useSession } from "@/src/lib/auth-client";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy, Loader2, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   BasicInfoCard,
@@ -43,6 +45,10 @@ export default function CreateEventPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Utiliser l'authentification Better Auth
+  const { data: session, isPending: isSessionLoading } = useSession();
+  const { userRole, isLoading: isRoleLoading } = useUserRole();
   const [formData, setFormData] = useState<CreateEventForm>({
     name: "",
     description: "",
@@ -61,6 +67,21 @@ export default function CreateEventPage() {
   const [codeCourt, setCodeCourt] = useState("");
   const [copied, setCopied] = useState(false);
   const [createdEvent, setCreatedEvent] = useState<any>(null);
+
+  // Vérifier l'authentification et le rôle
+  useEffect(() => {
+    if (!isSessionLoading && !isRoleLoading) {
+      if (!session?.user?.id) {
+        router.push("/");
+        return;
+      }
+
+      if (!userRole || userRole.roleType !== "ORGANISATEUR") {
+        router.push("/welcome");
+        return;
+      }
+    }
+  }, [session, userRole, isSessionLoading, isRoleLoading, router]);
 
   const handleInputChange = (field: keyof CreateEventForm, value: any) => {
     setFormData((prev) => ({
@@ -92,11 +113,18 @@ export default function CreateEventPage() {
       return;
     }
 
+    if (!session?.user?.id) {
+      alert("Vous devez être connecté pour créer un événement");
+      return;
+    }
+
+    if (!userRole || userRole.roleType !== "ORGANISATEUR") {
+      alert("Vous devez avoir le rôle d'organisateur pour créer un événement");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Simuler l'ID de l'utilisateur connecté (à remplacer par l'authentification réelle)
-      const organizerId = "user-uuid"; // TODO: Récupérer depuis l'auth
-
       const eventData = {
         name: formData.name,
         description: formData.description,
@@ -107,7 +135,6 @@ export default function CreateEventPage() {
         rules: eventRules,
         maxTeams: formData.maxTeams,
         maxPlayers: formData.maxPlayers,
-        organizerId,
         isPublic: formData.isPublic,
       };
 
@@ -163,6 +190,23 @@ export default function CreateEventPage() {
       copyToClipboard(registrationLink);
     }
   };
+
+  // Afficher un loader pendant le chargement de l'authentification
+  if (isSessionLoading || isRoleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de la session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Rediriger si pas d'utilisateur connecté ou pas le bon rôle
+  if (!session?.user?.id || !userRole || userRole.roleType !== "ORGANISATEUR") {
+    return null; // Le useEffect s'occupera de la redirection
+  }
 
   const renderStepContent = () => {
     switch (currentStep) {

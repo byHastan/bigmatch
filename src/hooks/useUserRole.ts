@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RoleType } from "../generated/prisma";
+import { useSession } from "../lib/auth-client";
 
 interface UserRole {
   id: string;
@@ -19,6 +20,9 @@ export function useUserRole() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Utiliser la session Better Auth
+  const { data: session, isPending: isSessionLoading } = useSession();
 
   // Récupérer le rôle depuis localStorage (fallback)
   const getLocalRole = (): string | null => {
@@ -46,39 +50,48 @@ export function useUserRole() {
   useEffect(() => {
     const initializeUserRole = async () => {
       try {
-        // D'abord, essayer de récupérer depuis localStorage
-        const localRole = getLocalRole();
+        // Attendre que la session soit chargée
+        if (isSessionLoading) return;
 
+        // Si l'utilisateur est connecté, récupérer son rôle depuis l'API
+        if (session?.user?.id) {
+          const apiUserRole = await fetchUserRole(session.user.id);
+          if (apiUserRole) {
+            setUserRole(apiUserRole);
+            saveLocalRole(apiUserRole.roleType.toLowerCase());
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // Fallback sur localStorage si pas de rôle dans l'API
+        const localRole = getLocalRole();
         if (localRole) {
-          // Convertir le rôle local en format UserRole temporaire
           const tempUserRole: UserRole = {
             id: "local",
-            userId: "local",
+            userId: session?.user?.id || "local",
             roleType: localRole.toUpperCase() as RoleType,
             isActive: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             user: {
-              id: "local",
-              email: "",
-              name: null,
+              id: session?.user?.id || "local",
+              email: session?.user?.email || "",
+              name: session?.user?.name || null,
             },
           };
           setUserRole(tempUserRole);
         }
 
-        // Essayer de récupérer depuis l'API si possible
-        // Pour l'instant, on se contente du localStorage
-        // TODO: Implémenter la récupération depuis l'API quand l'authentification sera en place
+        setIsLoading(false);
       } catch (error) {
         console.error("Erreur lors de l'initialisation du rôle:", error);
-      } finally {
         setIsLoading(false);
       }
     };
 
     initializeUserRole();
-  }, []);
+  }, [session, isSessionLoading]);
 
   // Créer un nouveau rôle pour l'utilisateur
   const createUserRole = async (userId: string, roleType: RoleType) => {
@@ -118,13 +131,10 @@ export function useUserRole() {
     }
   };
 
-  // Récupérer le rôle d'un utilisateur depuis l'API
+  // Récupérer le rôle de l'utilisateur connecté depuis l'API
   const fetchUserRole = async (userId: string) => {
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await fetch(`/api/user-roles?userId=${userId}`);
+      const response = await fetch("/api/user-roles/me");
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -133,26 +143,11 @@ export function useUserRole() {
         );
       }
 
-      const userRoles = await response.json();
-
-      if (userRoles.length > 0) {
-        // Prendre le premier rôle actif
-        const primaryRole = userRoles.find((role: UserRole) => role.isActive);
-        if (primaryRole) {
-          setUserRole(primaryRole);
-          saveLocalRole(primaryRole.roleType.toLowerCase());
-          return primaryRole;
-        }
-      }
-
-      return null;
+      const data = await response.json();
+      return data.userRole;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Erreur inconnue";
-      setError(errorMessage);
+      console.error("Erreur lors de la récupération du rôle:", err);
       return null;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -204,9 +199,14 @@ export function useUserRole() {
     clearLocalRole();
   };
 
+  // Récupérer l'ID de l'utilisateur connecté
+  const getCurrentUserId = (): string | null => {
+    return session?.user?.id || null;
+  };
+
   return {
     userRole,
-    isLoading,
+    isLoading: isLoading || isSessionLoading,
     error,
     createUserRole,
     fetchUserRole,
@@ -217,5 +217,7 @@ export function useUserRole() {
     getLocalRole,
     saveLocalRole,
     clearLocalRole,
+    getCurrentUserId,
+    isAuthenticated: !!session?.user?.id,
   };
 }

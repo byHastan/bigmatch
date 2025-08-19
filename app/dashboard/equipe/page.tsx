@@ -1,15 +1,9 @@
 "use client";
 
 import RoleGuard from "@/components/auth/RoleGuard";
+import { DashboardHeader } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
-import {
-  Calendar,
-  LogOut,
-  Search,
-  Trophy,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { Calendar, Search, Trophy, UserPlus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -49,33 +43,18 @@ export default function EquipeDashboard() {
 
   const router = useRouter();
 
-  const handleLogout = () => {
-    localStorage.removeItem("userRole");
-    router.push("/");
-  };
-
   return (
     <RoleGuard allowedRoles={["EQUIPE"]}>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-4">
-                <Users className="h-8 w-8 text-cyan-500" />
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Dashboard Équipe
-                </h1>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button variant="outline" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Déconnexion
-                </Button>
-              </div>
+        <DashboardHeader
+          title="Dashboard Équipe"
+          subtitle="Gérez vos participations aux événements"
+          icon={
+            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Users className="h-7 w-7 text-white" />
             </div>
-          </div>
-        </header>
+          }
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Cards */}

@@ -1,10 +1,13 @@
 export { default as DashboardHeader } from "./DashboardHeader";
+export { default as ErrorMessage } from "./ErrorMessage";
 export { default as EventCard } from "./EventCard";
 export { default as EventsList } from "./EventsList";
+export { default as EventStats } from "./EventStats";
+export { default as HomeEventCard } from "./HomeEventCard";
+export { default as HomeEventsList } from "./HomeEventsList";
+export { default as HomeHeader } from "./HomeHeader";
+export { default as LoadingSpinner } from "./LoadingSpinner";
 export { default as QuickActions } from "./QuickActions";
 export { default as StatsCard } from "./StatsCard";
 export { default as StatsGrid } from "./StatsGrid";
-
-// Types
-export type { Event } from "./EventCard";
-export type { ActionButton } from "./QuickActions";
+export { default as TabNavigation } from "./TabNavigation";

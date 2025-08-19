@@ -1,3 +1,4 @@
+import { auth } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -27,6 +28,18 @@ async function generateUniqueRegistrationCode(): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       name,
@@ -38,16 +51,15 @@ export async function POST(request: NextRequest) {
       rules,
       maxTeams,
       maxPlayers,
-      organizerId,
       isPublic = true, // Par défaut public
     } = body;
 
     // Validation des champs obligatoires
-    if (!name || !type || !date || !organizerId) {
+    if (!name || !type || !date) {
       return NextResponse.json(
         {
           error: "Champs obligatoires manquants",
-          required: ["name", "type", "date", "organizerId"],
+          required: ["name", "type", "date"],
         },
         { status: 400 }
       );
@@ -77,17 +89,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier que l'organisateur existe
-    const organizer = await prisma.user.findUnique({
-      where: { id: organizerId },
+    // Utiliser l'ID de l'utilisateur connecté comme organisateur
+    const organizerId = session.user.id;
+
+    // Vérifier que l'utilisateur a le rôle d'organisateur
+    const userRole = await prisma.userRole.findFirst({
+      where: {
+        userId: organizerId,
+        roleType: "ORGANISATEUR",
+        isActive: true,
+      },
     });
 
-    if (!organizer) {
+    if (!userRole) {
       return NextResponse.json(
         {
-          error: "Organisateur non trouvé",
+          error:
+            "Vous devez avoir le rôle d'organisateur pour créer un événement",
         },
-        { status: 404 }
+        { status: 403 }
       );
     }
 
@@ -143,18 +163,23 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizerId = searchParams.get("organizerId");
-    const status = searchParams.get("status");
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
 
-    if (!organizerId) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        {
-          error: "ID de l'organisateur requis",
-        },
-        { status: 400 }
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
       );
     }
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+
+    // Utiliser l'ID de l'utilisateur connecté
+    const organizerId = session.user.id;
 
     // Construire les filtres
     const where: any = {

@@ -1,15 +1,28 @@
 import { RoleType } from "@/src/generated/prisma";
+import { auth } from "@/src/lib/auth";
 import { UserRoleService } from "@/src/lib/user-roles";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, roleType } = body;
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
 
-    if (!userId || !roleType) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "userId et roleType sont requis" },
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { roleType } = body;
+
+    if (!roleType) {
+      return NextResponse.json(
+        { error: "roleType est requis" },
         { status: 400 }
       );
     }
@@ -17,6 +30,22 @@ export async function POST(request: NextRequest) {
     // Vérifier que le roleType est valide
     if (!Object.values(RoleType).includes(roleType)) {
       return NextResponse.json({ error: "roleType invalide" }, { status: 400 });
+    }
+
+    // Utiliser l'ID de l'utilisateur connecté
+    const userId = session.user.id;
+
+    // Vérifier si l'utilisateur a déjà ce rôle
+    const existingRole = await UserRoleService.getUserRoles(userId);
+    const hasRole = existingRole.some(
+      (role) => role.roleType === roleType && role.isActive
+    );
+
+    if (hasRole) {
+      return NextResponse.json(
+        { error: "L'utilisateur a déjà ce rôle" },
+        { status: 400 }
+      );
     }
 
     const userRole = await UserRoleService.createUserRole({
@@ -36,15 +65,23 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
     const roleType = searchParams.get("roleType");
 
-    if (userId) {
-      // Récupérer les rôles d'un utilisateur spécifique
-      const userRoles = await UserRoleService.getUserRoles(userId);
-      return NextResponse.json(userRoles);
-    }
+    // Utiliser l'ID de l'utilisateur connecté
+    const userId = session.user.id;
 
     if (roleType) {
       // Vérifier que le roleType est valide
@@ -62,10 +99,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(usersWithRole);
     }
 
-    return NextResponse.json(
-      { error: "userId ou roleType requis" },
-      { status: 400 }
-    );
+    // Récupérer les rôles de l'utilisateur connecté
+    const userRoles = await UserRoleService.getUserRoles(userId);
+    return NextResponse.json(userRoles);
   } catch (error) {
     console.error("Erreur lors de la récupération des rôles:", error);
     return NextResponse.json(

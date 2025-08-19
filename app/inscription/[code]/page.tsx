@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Camera, CheckCircle, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { use, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,12 +31,16 @@ interface TeamRegistration {
 export default function InscriptionPage({
   params,
 }: {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [eventInfo, setEventInfo] = useState<any>(null);
+
+  // Déballer les paramètres avec React.use()
+  const { code } = use(params);
+
   const [teamData, setTeamData] = useState<TeamRegistration>({
     name: "",
     description: "",
@@ -59,7 +63,7 @@ export default function InscriptionPage({
   const verifyCode = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/inscription?code=${params.code}`);
+      const response = await fetch(`/api/inscription?code=${code}`);
       const result = await response.json();
 
       if (result.success) {
@@ -148,7 +152,7 @@ export default function InscriptionPage({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          registrationCode: params.code,
+          registrationCode: code,
           teamData: {
             ...teamData,
             logo: teamData.logo ? teamData.logo.name : null, // Pour l'instant, on envoie juste le nom
@@ -200,7 +204,7 @@ export default function InscriptionPage({
                     <Label htmlFor="code">Code d'inscription</Label>
                     <Input
                       id="code"
-                      value={params.code}
+                      value={code}
                       readOnly
                       className="text-center text-2xl font-mono font-bold text-blue-600"
                     />

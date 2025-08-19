@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (event.status !== "ACTIVE") {
+    // Permettre les inscriptions pour les événements DRAFT et ACTIVE
+    if (event.status !== "DRAFT" && event.status !== "ACTIVE") {
       return NextResponse.json(
         { error: "Les inscriptions ne sont pas ouvertes pour cet événement" },
         { status: 400 }
