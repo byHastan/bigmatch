@@ -196,3 +196,4 @@ Pour tester le système :
 - **Next.js** : Framework React pour l'API et le frontend
 - **TypeScript** : Typage statique pour la sécurité du code
 - **Tailwind CSS** : Framework CSS pour l'interface utilisateur
+
