@@ -105,6 +105,7 @@ model Event {
   maxTeams         Int?
   maxPlayers       Int?
   status           String   @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, CANCELLED
+  isPrivate        Boolean  @default(false) // Indique si l'événement est privé ou public
   organizerId      String
   organizer        User     @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   teams            Team[]

@@ -30,7 +30,7 @@ interface CreateEventForm {
   rules: string;
   maxTeams: number | null;
   maxPlayers: number | null;
-  isPublic: boolean;
+  isPrivate: boolean;
 }
 
 const steps = [
@@ -59,7 +59,7 @@ export default function CreateEventPage() {
     rules: "",
     maxTeams: null,
     maxPlayers: null,
-    isPublic: true,
+    isPrivate: false,
   });
 
   const [eventRules, setEventRules] = useState<any>({});
@@ -135,7 +135,7 @@ export default function CreateEventPage() {
         rules: eventRules,
         maxTeams: formData.maxTeams,
         maxPlayers: formData.maxPlayers,
-        isPublic: formData.isPublic,
+        isPrivate: formData.isPrivate,
       };
 
       const response = await fetch("/api/events", {
@@ -226,8 +226,8 @@ export default function CreateEventPage() {
 
             {/* Toggle Privé/Public */}
             <PublicPrivateToggle
-              isPublic={formData.isPublic}
-              onToggle={(isPublic) => handleInputChange("isPublic", isPublic)}
+              isPublic={!formData.isPrivate}
+              onToggle={(isPublic) => handleInputChange("isPrivate", !isPublic)}
               className="mt-6"
             />
           </motion.div>
@@ -363,7 +363,7 @@ export default function CreateEventPage() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Visibilité:</span>
                     <span className="text-gray-900">
-                      {formData.isPublic ? "Public" : "Privé"}
+                      {formData.isPrivate ? "Privé" : "Public"}
                     </span>
                   </div>
                   <div className="flex justify-between">
