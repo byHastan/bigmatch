@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import { Event } from "../types/event";
 
-interface UseEventsReturn {
+interface UseAllEventsReturn {
   events: Event[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
 }
 
-export function useEvents(): UseEventsReturn {
+export function useAllEvents(): UseAllEventsReturn {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEvents = async () => {
+  const fetchAllEvents = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/events");
+      const response = await fetch("/api/events/all");
 
       if (!response.ok) {
         throw new Error("Erreur lors de la récupération des événements");
@@ -39,13 +39,13 @@ export function useEvents(): UseEventsReturn {
   };
 
   useEffect(() => {
-    fetchEvents();
+    fetchAllEvents();
   }, []);
 
   return {
     events,
     loading,
     error,
-    refetch: fetchEvents,
+    refetch: fetchAllEvents,
   };
 }

@@ -1,13 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Event } from "@/src/hooks/useEvents";
+import { Event } from "@/src/types/event";
 import { Crown, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 
 interface HomeEventCardProps {
   event: Event;
+  isOwner?: boolean;
 }
 
-export default function HomeEventCard({ event }: HomeEventCardProps) {
+export default function HomeEventCard({
+  event,
+  isOwner = false,
+}: HomeEventCardProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -73,13 +77,15 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
           </div>
         </div>
 
-        {/* Badge propriétaire */}
-        <div className="absolute top-4 right-4">
-          <div className="bg-white text-orange-600 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
-            <Crown className="w-3 h-3" />
-            <span>PROPRIÉTAIRE</span>
+        {/* Badge propriétaire - affiché seulement si l'utilisateur est propriétaire */}
+        {isOwner && (
+          <div className="absolute top-4 right-4">
+            <div className="bg-white text-orange-600 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
+              <Crown className="w-3 h-3" />
+              <span>PROPRIÉTAIRE</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Informations de l'événement */}
         <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
@@ -129,11 +135,23 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
                 : "Annulé"}
             </span>
           </div>
-          <Link href={`/events/${event.id}`}>
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
-              Gérer
-            </Button>
-          </Link>
+          {/* Bouton Gérer - affiché seulement si l'utilisateur est propriétaire */}
+          {isOwner ? (
+            <Link href={`/events/${event.id}`}>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
+                Gérer
+              </Button>
+            </Link>
+          ) : (
+            <Link href={`/events/${event.id}`}>
+              <Button
+                variant="outline"
+                className="border-orange-300 text-orange-600 hover:bg-orange-50 px-4 py-2 rounded-lg"
+              >
+                Voir
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>

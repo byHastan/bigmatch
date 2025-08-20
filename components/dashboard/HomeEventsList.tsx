@@ -1,4 +1,5 @@
-import { Event } from "@/src/hooks/useEvents";
+import { useUserRole } from "@/src/hooks/useUserRole";
+import { Event } from "@/src/types/event";
 import HomeEventCard from "./HomeEventCard";
 
 interface HomeEventsListProps {
@@ -6,6 +7,8 @@ interface HomeEventsListProps {
 }
 
 export default function HomeEventsList({ events }: HomeEventsListProps) {
+  const { getCurrentUserId } = useUserRole();
+  const currentUserId = getCurrentUserId();
   if (events.length === 0) {
     return (
       <div className="text-center py-12">
@@ -28,7 +31,11 @@ export default function HomeEventsList({ events }: HomeEventsListProps) {
   return (
     <div className="space-y-4">
       {events.map((event) => (
-        <HomeEventCard key={event.id} event={event} />
+        <HomeEventCard
+          key={event.id}
+          event={event}
+          isOwner={currentUserId === event.organizerId}
+        />
       ))}
     </div>
   );

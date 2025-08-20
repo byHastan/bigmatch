@@ -13,6 +13,7 @@ import {
   TabNavigation,
 } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
+import { useAllEvents } from "@/src/hooks/useAllEvents";
 import { useEvents } from "@/src/hooks/useEvents";
 import { ROLES } from "@/src/lib/constants";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,18 @@ import { useRouter } from "next/navigation";
 export default function OrganisateurDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
-  const { events, loading, error, refetch } = useEvents();
+  const {
+    events: userEvents,
+    loading: userEventsLoading,
+    error: userEventsError,
+    refetch: refetchUserEvents,
+  } = useEvents();
+  const {
+    events: allEvents,
+    loading: allEventsLoading,
+    error: allEventsError,
+    refetch: refetchAllEvents,
+  } = useAllEvents();
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -47,12 +59,15 @@ export default function OrganisateurDashboard() {
                 Gérer mes événements
               </Button>
             </div>
-            {loading ? (
+            {allEventsLoading ? (
               <LoadingSpinner />
-            ) : error ? (
-              <ErrorMessage message={error} onRetry={refetch} />
+            ) : allEventsError ? (
+              <ErrorMessage
+                message={allEventsError}
+                onRetry={refetchAllEvents}
+              />
             ) : (
-              <HomeEventsList events={events} />
+              <HomeEventsList events={allEvents} />
             )}
           </motion.div>
         );
@@ -70,12 +85,15 @@ export default function OrganisateurDashboard() {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Tous mes événements
               </h2>
-              {loading ? (
+              {userEventsLoading ? (
                 <LoadingSpinner />
-              ) : error ? (
-                <ErrorMessage message={error} onRetry={refetch} />
+              ) : userEventsError ? (
+                <ErrorMessage
+                  message={userEventsError}
+                  onRetry={refetchUserEvents}
+                />
               ) : (
-                <HomeEventsList events={events} />
+                <HomeEventsList events={userEvents} />
               )}
             </div>
           </motion.div>

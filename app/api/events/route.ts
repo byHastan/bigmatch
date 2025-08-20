@@ -223,6 +223,7 @@ export async function GET(request: NextRequest) {
         (total, team) => total + team.players.length,
         0
       ),
+      organizerId: event.organizerId, // Ajouter l'ID de l'organisateur
       createdAt: event.createdAt,
       updatedAt: event.updatedAt,
     }));
