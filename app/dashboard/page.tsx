@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { signOut } from "@/src/lib/auth-client";
+import { useUserRole } from "@/src/hooks/useUserRole";
+import { signOut, useSession } from "@/src/lib/auth-client";
 import { ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/src/lib/constants";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,9 +9,26 @@ import { useEffect, useState } from "react";
 export default function Dashboard() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const { userRole, isLoading: isUserRoleLoading } = useUserRole();
+  const { data: session, isPending: isSessionLoading } = useSession();
+
+  // Rediriger automatiquement vers le bon rôle si l'utilisateur en a déjà un
+  useEffect(() => {
+    if (!isSessionLoading && !isUserRoleLoading && userRole) {
+      const rolePath = userRole.roleType.toLowerCase();
+      router.push(`/dashboard/${rolePath}`);
+    }
+  }, [userRole, isUserRoleLoading, isSessionLoading, router]);
+
+  // Rediriger si l'utilisateur n'est pas connecté
+  useEffect(() => {
+    if (!isSessionLoading && !session?.user?.id) {
+      router.push("/");
+    }
+  }, [session, isSessionLoading, router]);
 
   useEffect(() => {
-    // Récupérer le rôle depuis localStorage
+    // Récupérer le rôle depuis localStorage (fallback)
     const localRole = localStorage.getItem("userRole");
     if (localRole) {
       setSelectedRole(localRole);
@@ -43,6 +61,39 @@ export default function Dashboard() {
     await signOut();
     router.push("/");
   };
+
+  // Afficher un loader pendant le chargement
+  if (isSessionLoading || isUserRoleLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
+          <p className="text-xl text-gray-700 font-medium">
+            Chargement du dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Rediriger si pas d'utilisateur connecté
+  if (!session?.user?.id) {
+    return null; // Le useEffect s'occupera de la redirection
+  }
+
+  // Si l'utilisateur a déjà un rôle, ne pas afficher cette page (redirection en cours)
+  if (userRole) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
+          <p className="text-xl text-gray-700 font-medium">
+            Redirection vers votre dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -3,58 +3,101 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { signIn } from "@/src/lib/auth-client";
+import { Chrome, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 export default function ButtonGoogleAuth() {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <Button
-      variant="outline"
-      className={cn("w-1/2 gap-2")}
-      disabled={isLoading}
-      onClick={async () => {
-        await signIn.social(
-          {
-            provider: "google",
-            callbackURL: "/dashboard",
-            newUserCallbackURL: "/welcome",
-          },
-          {
-            onRequest: () => {
-              setIsLoading(true);
+    <div className="relative group">
+      {/* Effet de brillance en arrière-plan */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+
+      <Button
+        variant="outline"
+        className={cn(
+          "relative w-80 h-14 gap-3 text-lg font-semibold bg-white/90 backdrop-blur-sm border-2 border-gray-200/50 hover:border-blue-300/50 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg",
+          "rounded-xl overflow-hidden group/button"
+        )}
+        disabled={isLoading}
+        onClick={async () => {
+          await signIn.social(
+            {
+              provider: "google",
+              callbackURL: "/dashboard",
+              newUserCallbackURL: "/welcome",
             },
-            onResponse: () => {
-              setIsLoading(false);
-            },
-          }
-        );
-      }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="0.98em"
-        height="1em"
-        viewBox="0 0 256 262"
+            {
+              onRequest: () => {
+                setIsLoading(true);
+              },
+              onResponse: () => {
+                setIsLoading(false);
+              },
+            }
+          );
+        }}
       >
-        <path
-          fill="#4285F4"
-          d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622l38.755 30.023l2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"
-        ></path>
-        <path
-          fill="#34A853"
-          d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055c-34.523 0-63.824-22.773-74.269-54.25l-1.531.13l-40.298 31.187l-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"
-        ></path>
-        <path
-          fill="#FBBC05"
-          d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82c0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602z"
-        ></path>
-        <path
-          fill="#EB4335"
-          d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0C79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"
-        ></path>
-      </svg>
-      Sign in with Google
-    </Button>
+        {/* Effet de brillance au survol */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-indigo-50/50 to-purple-50/50 opacity-0 group-hover/button:opacity-100 transition-opacity duration-300" />
+
+        {/* Contenu du bouton */}
+        <div className="relative z-10 flex items-center gap-3">
+          {isLoading ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <span className="text-blue-600">Connexion en cours...</span>
+            </>
+          ) : (
+            <>
+              {/* Icône Google stylisée */}
+              <div className="relative">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                  <Chrome className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse">
+                  <Sparkles className="w-2 h-2 text-white" />
+                </div>
+              </div>
+
+              {/* Texte du bouton */}
+              <div className="text-left">
+                <div className="text-gray-800 font-bold">
+                  Se connecter avec Google
+                </div>
+                <div className="text-xs text-gray-500 font-medium">
+                  Connexion rapide et sécurisée
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Indicateur de progression */}
+        {isLoading && (
+          <div
+            className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 animate-pulse"
+            style={{ width: "100%" }}
+          />
+        )}
+      </Button>
+
+      {/* Particules flottantes autour du bouton */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-blue-400/30 rounded-full animate-pulse"
+            style={{
+              left: `${20 + i * 30}%`,
+              top: `${-20 + i * 10}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${2 + i * 0.5}s`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
