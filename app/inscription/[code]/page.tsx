@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { inscriptionApi } from "@/src/lib/api";
 
 interface Player {
   id: string;
@@ -63,15 +64,9 @@ export default function InscriptionPage({
   const verifyCode = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/inscription?code=${code}`);
-      const result = await response.json();
-
-      if (result.success) {
-        setEventInfo(result.data);
-        setCurrentStep(2);
-      } else {
-        alert(`Erreur: ${result.error}`);
-      }
+      const result = await inscriptionApi.getByCode(code);
+      setEventInfo(result);
+      setCurrentStep(2);
     } catch (error) {
       console.error("Erreur lors de la vérification:", error);
       alert("Erreur lors de la vérification du code");
@@ -146,27 +141,14 @@ export default function InscriptionPage({
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/inscription", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const result = await inscriptionApi.create({
+        registrationCode: code,
+        teamData: {
+          ...teamData,
+          logo: teamData.logo ? teamData.logo.name : null, // Pour l'instant, on envoie juste le nom
         },
-        body: JSON.stringify({
-          registrationCode: code,
-          teamData: {
-            ...teamData,
-            logo: teamData.logo ? teamData.logo.name : null, // Pour l'instant, on envoie juste le nom
-          },
-        }),
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setCurrentStep(4);
-      } else {
-        alert(`Erreur lors de l'inscription: ${result.error}`);
-      }
+      setCurrentStep(4);
     } catch (error) {
       console.error("Erreur lors de l'inscription:", error);
       alert("Erreur lors de l'inscription");

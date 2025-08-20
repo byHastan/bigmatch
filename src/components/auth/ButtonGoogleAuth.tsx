@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { DeviconGoogle } from "@/src/components/auth/DeviconGoogle";
 import { signIn } from "@/src/lib/auth-client";
-import { Chrome, Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export default function ButtonGoogleAuth() {
@@ -11,9 +12,6 @@ export default function ButtonGoogleAuth() {
 
   return (
     <div className="relative group">
-      {/* Effet de brillance en arrière-plan */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-
       <Button
         variant="outline"
         className={cn(
@@ -39,9 +37,6 @@ export default function ButtonGoogleAuth() {
           );
         }}
       >
-        {/* Effet de brillance au survol */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-indigo-50/50 to-purple-50/50 opacity-0 group-hover/button:opacity-100 transition-opacity duration-300" />
-
         {/* Contenu du bouton */}
         <div className="relative z-10 flex items-center gap-3">
           {isLoading ? (
@@ -51,17 +46,8 @@ export default function ButtonGoogleAuth() {
             </>
           ) : (
             <>
-              {/* Icône Google stylisée */}
-              <div className="relative">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                  <Chrome className="w-5 h-5 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse">
-                  <Sparkles className="w-2 h-2 text-white" />
-                </div>
-              </div>
-
               {/* Texte du bouton */}
+              <DeviconGoogle className="w-6 h-6" />
               <div className="text-left">
                 <div className="text-gray-800 font-bold">
                   Se connecter avec Google

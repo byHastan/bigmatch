@@ -6,14 +6,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    // Construire les filtres - seulement les événements actifs
-    const where: any = {
-      status: "ACTIVE", // Seulement les événements actifs
-    };
+    // Construire les filtres
+    const where: any = {};
 
     if (status) {
       where.status = status;
     }
+    // Sinon, récupérer tous les événements quel que soit leur statut
 
     // Récupérer tous les événements publics
     const events = await prisma.event.findMany({

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Event } from "@/src/hooks/useEvents";
+import { Event } from "@/src/types/event";
 import { Calendar, Eye, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 

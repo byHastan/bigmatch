@@ -12,6 +12,7 @@ export { default as HomeEventsList } from "./HomeEventsList";
 export { default as HomeHeader } from "./HomeHeader";
 export { default as LoadingSpinner } from "./LoadingSpinner";
 export { default as QuickActions } from "./QuickActions";
+export { default as RoleManager } from "./RoleManager";
 export { default as StatsCard } from "./StatsCard";
 export { default as StatsGrid } from "./StatsGrid";
 export { default as TabNavigation } from "./TabNavigation";

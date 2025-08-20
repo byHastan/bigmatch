@@ -1,4 +1,4 @@
-import { Event } from "@/src/hooks/useEvents";
+import { Event } from "@/src/types/event";
 import { Calendar, Users, Trophy, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react";
 
 interface EventManagementStatsProps {
@@ -6,6 +6,17 @@ interface EventManagementStatsProps {
 }
 
 export default function EventManagementStats({ events }: EventManagementStatsProps) {
+  // Vérifier que events existe et est un tableau
+  if (!events || !Array.isArray(events)) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="text-center text-gray-500">Chargement...</div>
+        </div>
+      </div>
+    );
+  }
+
   const totalEvents = events.length;
   const activeEvents = events.filter(e => e.status === "ACTIVE").length;
   const draftEvents = events.filter(e => e.status === "DRAFT").length;

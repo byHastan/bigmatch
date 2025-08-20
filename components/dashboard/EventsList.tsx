@@ -1,4 +1,4 @@
-import { Event } from "@/src/hooks/useEvents";
+import { Event } from "@/src/types/event";
 import EventCard from "./EventCard";
 
 interface EventsListProps {
@@ -6,7 +6,8 @@ interface EventsListProps {
 }
 
 export default function EventsList({ events }: EventsListProps) {
-  if (events.length === 0) {
+  // Vérifier que events existe, est un tableau et n'est pas vide
+  if (!events || !Array.isArray(events) || events.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">

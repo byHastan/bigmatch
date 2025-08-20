@@ -1,51 +1,11 @@
-import { useEffect, useState } from "react";
-import { Event } from "../types/event";
+import { useQuery } from "@tanstack/react-query";
+import { eventsApi } from "../lib/api";
 
-interface UseEventsReturn {
-  events: Event[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
-}
-
-export function useEvents(): UseEventsReturn {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch("/api/events");
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des événements");
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setEvents(data.data);
-      } else {
-        throw new Error(data.error || "Erreur inconnue");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  return {
-    events,
-    loading,
-    error,
-    refetch: fetchEvents,
-  };
+export function useEvents() {
+  return useQuery({
+    queryKey: ["events"],
+    queryFn: eventsApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
 }

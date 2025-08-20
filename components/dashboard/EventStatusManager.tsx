@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { eventsApi } from "@/src/lib/api";
 import {
   CheckCircle,
   Loader2,
@@ -80,23 +81,10 @@ export default function EventStatusManager({
     setError(null);
 
     try {
-      const response = await fetch(`/api/events/${eventId}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        onStatusChange(newStatus);
-      } else {
-        setError(result.error || "Erreur lors de la mise à jour du statut");
-      }
+      const result = await eventsApi.updateStatus(eventId, newStatus as any);
+      onStatusChange(newStatus);
     } catch (err) {
-      setError("Erreur de connexion");
+      setError("Erreur lors de la mise à jour du statut");
     } finally {
       setIsLoading(false);
     }

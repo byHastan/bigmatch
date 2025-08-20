@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RoleType } from "../generated/prisma";
+import { userRolesApi } from "../lib/api";
 import { useSession } from "../lib/auth-client";
 
 interface UserRole {
@@ -99,28 +100,13 @@ export function useUserRole() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/user-roles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId, roleType }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Erreur lors de la création du rôle"
-        );
-      }
-
-      const newUserRole = await response.json();
-      setUserRole(newUserRole);
+      const response = await userRolesApi.create({ userId, roleType });
+      setUserRole(response);
 
       // Sauvegarder dans localStorage pour la compatibilité
       saveLocalRole(roleType.toLowerCase());
 
-      return newUserRole;
+      return response;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Erreur inconnue";
@@ -134,17 +120,8 @@ export function useUserRole() {
   // Récupérer le rôle de l'utilisateur connecté depuis l'API
   const fetchUserRole = async (userId: string) => {
     try {
-      const response = await fetch("/api/user-roles/me");
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Erreur lors de la récupération du rôle"
-        );
-      }
-
-      const data = await response.json();
-      return data.userRole;
+      const response = await userRolesApi.getMyRole();
+      return response.userRole;
     } catch (err) {
       console.error("Erreur lors de la récupération du rôle:", err);
       return null;
@@ -159,13 +136,7 @@ export function useUserRole() {
 
       // Désactiver tous les rôles existants
       if (userRole) {
-        await fetch(`/api/user-roles/${userRole.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ isActive: false }),
-        });
+        await userRolesApi.update(userRole.id, { isActive: false });
       }
 
       // Créer le nouveau rôle

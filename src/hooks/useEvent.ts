@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { eventsApi } from "../lib/api";
 
 export interface Event {
   id: string;
@@ -49,14 +50,7 @@ interface UpdateEventData {
 export function useEvent(eventId: string) {
   return useQuery({
     queryKey: ["event", eventId],
-    queryFn: async (): Promise<Event> => {
-      const response = await fetch(`/api/events/${eventId}`);
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération de l'événement");
-      }
-      const data = await response.json();
-      return data.data;
-    },
+    queryFn: () => eventsApi.getById(eventId),
     enabled: !!eventId,
   });
 }
@@ -69,19 +63,7 @@ export function useUpdateEvent(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: UpdateEventData) => {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour de l'événement");
-      }
-      return response.json();
-    },
+    mutationFn: (data: UpdateEventData) => eventsApi.update(eventId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -101,19 +83,8 @@ export function useUpdateEventStatus(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (status: string) => {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour du statut");
-      }
-      return response.json();
-    },
+    mutationFn: (status: string) =>
+      eventsApi.updateStatus(eventId, status as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
       queryClient.invalidateQueries({ queryKey: ["events"] });

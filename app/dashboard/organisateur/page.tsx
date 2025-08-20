@@ -14,7 +14,6 @@ import {
 } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { useAllEvents } from "@/src/hooks/useAllEvents";
-import { useEvents } from "@/src/hooks/useEvents";
 import { ROLES } from "@/src/lib/constants";
 import { useRouter } from "next/navigation";
 
@@ -22,14 +21,8 @@ export default function OrganisateurDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const {
-    events: userEvents,
-    loading: userEventsLoading,
-    error: userEventsError,
-    refetch: refetchUserEvents,
-  } = useEvents();
-  const {
-    events: allEvents,
-    loading: allEventsLoading,
+    data: allEvents = [],
+    isLoading: allEventsLoading,
     error: allEventsError,
     refetch: refetchAllEvents,
   } = useAllEvents();
@@ -63,7 +56,7 @@ export default function OrganisateurDashboard() {
               <LoadingSpinner />
             ) : allEventsError ? (
               <ErrorMessage
-                message={allEventsError}
+                message={allEventsError.message}
                 onRetry={refetchAllEvents}
               />
             ) : (
@@ -83,17 +76,17 @@ export default function OrganisateurDashboard() {
           >
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Tous mes événements
+                Tous les événements
               </h2>
-              {userEventsLoading ? (
+              {allEventsLoading ? (
                 <LoadingSpinner />
-              ) : userEventsError ? (
+              ) : allEventsError ? (
                 <ErrorMessage
-                  message={userEventsError}
-                  onRetry={refetchUserEvents}
+                  message={allEventsError.message}
+                  onRetry={refetchAllEvents}
                 />
               ) : (
-                <HomeEventsList events={userEvents} />
+                <HomeEventsList events={allEvents} />
               )}
             </div>
           </motion.div>

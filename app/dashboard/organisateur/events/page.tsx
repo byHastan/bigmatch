@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 
 export default function EventManagementPage() {
   const router = useRouter();
-  const { events, loading, error, refetch } = useEvents();
+  const { data: events = [], isLoading: loading, error, refetch } = useEvents();
 
   // États pour les filtres
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +41,9 @@ export default function EventManagementPage() {
 
   // Filtrer les événements
   const filteredEvents = useMemo(() => {
+    if (!events || !Array.isArray(events)) {
+      return [];
+    }
     return events.filter((event) => {
       const matchesSearch =
         searchQuery === "" ||
@@ -66,7 +69,10 @@ export default function EventManagementPage() {
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    const event = events.find((e) => e.id === eventId);
+    const event =
+      events && Array.isArray(events)
+        ? events.find((e) => e.id === eventId)
+        : null;
     if (event) {
       setDeleteModal({
         isOpen: true,
@@ -146,7 +152,7 @@ export default function EventManagementPage() {
             }}
           />
           <div className="max-w-6xl mx-auto px-4 py-6">
-            <ErrorMessage message={error} onRetry={refetch} />
+            <ErrorMessage message={error.message} onRetry={refetch} />
           </div>
         </div>
       </RoleGuard>
@@ -199,7 +205,9 @@ export default function EventManagementPage() {
             </div>
 
             {/* Statistiques */}
-            <EventManagementStats events={events} />
+            <EventManagementStats
+              events={events && Array.isArray(events) ? events : []}
+            />
           </motion.div>
 
           {/* Filtres */}

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Event } from "@/src/hooks/useEvents";
+import { Event } from "@/src/types/event";
 import { Calendar, MapPin, Users, Crown, Edit, Trash2, Eye, Copy, Share2 } from "lucide-react";
 import { useState } from "react";
 

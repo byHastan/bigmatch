@@ -4,7 +4,6 @@ import { DynamicBackground } from "@/components/ui/bouncing-ball";
 import ButtonGoogleAuth from "@/src/components/auth/ButtonGoogleAuth";
 import { useUserRole } from "@/src/hooks/useUserRole";
 import { useSession } from "@/src/lib/auth-client";
-import { Trophy, Users, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -61,45 +60,6 @@ export default function Home() {
             Organisez, participez et gérez vos compétitions sportives en toute
             simplicité
           </p>
-        </div>
-
-        {/* Fonctionnalités principales avec icônes animées */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl animate-fade-in-up animation-delay-600">
-          <div className="text-center group">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Trophy className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Organisation
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Créez et gérez vos événements sportifs
-            </p>
-          </div>
-
-          <div className="text-center group">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Users className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Participation
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Rejoignez des équipes et des compétitions
-            </p>
-          </div>
-
-          <div className="text-center group">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Performance
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Suivez vos statistiques et progrès
-            </p>
-          </div>
         </div>
 
         {/* Bouton de connexion avec animation */}

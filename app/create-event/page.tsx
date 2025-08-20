@@ -7,6 +7,7 @@ import { Copy, Loader2, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { RoleManager } from "@/components/dashboard";
 import {
   BasicInfoCard,
   DateTimeCard,
@@ -17,6 +18,7 @@ import {
   SuccessCard,
 } from "@/components/events";
 import { PublicPrivateToggle } from "@/components/ui/toggle";
+import { eventsApi } from "@/src/lib/api";
 
 type EventType = "MATCH" | "CHAMPIONNAT" | "COUPE";
 
@@ -67,6 +69,7 @@ export default function CreateEventPage() {
   const [codeCourt, setCodeCourt] = useState("");
   const [copied, setCopied] = useState(false);
   const [createdEvent, setCreatedEvent] = useState<any>(null);
+  const [showPermissionError, setShowPermissionError] = useState(false);
 
   // Vérifier l'authentification et le rôle
   useEffect(() => {
@@ -119,7 +122,7 @@ export default function CreateEventPage() {
     }
 
     if (!userRole || userRole.roleType !== "ORGANISATEUR") {
-      alert("Vous devez avoir le rôle d'organisateur pour créer un événement");
+      setShowPermissionError(true);
       return;
     }
 
@@ -138,27 +141,20 @@ export default function CreateEventPage() {
         isPrivate: formData.isPrivate,
       };
 
-      const response = await fetch("/api/events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventData),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setCreatedEvent(result.data);
-        setCodeCourt(result.data.registrationCode);
-        setRegistrationLink(result.data.registrationLink);
-        setCurrentStep(5);
-      } else {
-        alert(`Erreur lors de la création: ${result.error}`);
-      }
-    } catch (error) {
+      const result = await eventsApi.create(eventData);
+      setCreatedEvent(result);
+      setCodeCourt(result.registrationCode);
+      setRegistrationLink(result.registrationLink || "");
+      setCurrentStep(5);
+    } catch (error: any) {
       console.error("Erreur lors de la création de l'événement:", error);
-      alert("Erreur lors de la création de l'événement");
+
+      // Vérifier si c'est une erreur de permission (403)
+      if (error?.response?.status === 403 || error?.status === 403) {
+        setShowPermissionError(true);
+      } else {
+        alert("Erreur lors de la création de l'événement");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -204,8 +200,40 @@ export default function CreateEventPage() {
   }
 
   // Rediriger si pas d'utilisateur connecté ou pas le bon rôle
-  if (!session?.user?.id || !userRole || userRole.roleType !== "ORGANISATEUR") {
+  if (!session?.user?.id) {
     return null; // Le useEffect s'occupera de la redirection
+  }
+
+  // Afficher le gestionnaire de rôles si l'utilisateur n'a pas le bon rôle
+  if (
+    !userRole ||
+    userRole.roleType !== "ORGANISATEUR" ||
+    showPermissionError
+  ) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Créer un événement
+            </h1>
+            <p className="text-gray-600">
+              Organisez et gérez vos événements sportifs
+            </p>
+          </div>
+
+          <RoleManager
+            showError={true}
+            requiredRole="ORGANISATEUR"
+            onRoleChanged={() => {
+              setShowPermissionError(false);
+              // Recharger la page ou rediriger après changement de rôle
+              window.location.reload();
+            }}
+          />
+        </div>
+      </div>
+    );
   }
 
   const renderStepContent = () => {
