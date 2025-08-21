@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "db:check": "node scripts/check-database.js",
+    "db:setup": "npx prisma generate && npx prisma db push",
+    "db:reset": "npx prisma db push --force-reset && npm run seed",
+    "db:studio": "npx prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
