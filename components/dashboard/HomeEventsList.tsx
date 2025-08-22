@@ -1,4 +1,4 @@
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { Event } from "@/src/types/event";
 import HomeEventCard from "./HomeEventCard";
 
@@ -7,8 +7,8 @@ interface HomeEventsListProps {
 }
 
 export default function HomeEventsList({ events }: HomeEventsListProps) {
-  const { getCurrentUserId } = useUserRole();
-  const currentUserId = getCurrentUserId();
+  const { userRole } = useHybridUserRole();
+  const currentUserId = userRole?.userId;
 
   // Vérifier que events existe, est un tableau et n'est pas vide
   if (!events || !Array.isArray(events) || events.length === 0) {

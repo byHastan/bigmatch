@@ -2,7 +2,7 @@
 
 import { DynamicBackground } from "@/components/ui/bouncing-ball";
 import ButtonGoogleAuth from "@/src/components/auth/ButtonGoogleAuth";
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { useSession } from "@/src/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,7 +11,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { data: session, isPending: isSessionLoading } = useSession();
-  const { userRole, isLoading: isUserRoleLoading } = useUserRole();
+  const { userRole, isLoading: isUserRoleLoading } = useHybridUserRole();
 
   useEffect(() => {
     // Attendre que la session et le rôle soient chargés

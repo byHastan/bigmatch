@@ -1,9 +1,9 @@
 "use client";
 
 import { RoleType } from "@/src/generated/prisma";
-import { useSession } from "@/src/lib/auth-client";
 import { userRolesApi } from "@/src/lib/api";
-import { UserRoleCookieService } from "@/src/lib/secure-cookies";
+import { useSession } from "@/src/lib/auth-client";
+import { UserRoleCookieService } from "@/src/lib/client-cookies";
 import { useEffect, useState } from "react";
 
 interface UserRole {

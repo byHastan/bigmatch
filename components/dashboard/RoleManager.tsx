@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RoleType } from "@/src/generated/prisma";
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/src/lib/constants";
 import { AlertCircle, CheckCircle, Trophy, User, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -70,13 +70,12 @@ function RoleManager({
   requiredRole,
   onRoleChanged,
 }: RoleManagerProps) {
-  const { userRole, changeUserRole, getCurrentUserId, isLoading } =
-    useUserRole();
+  const { userRole, changeUserRole, isLoading } = useHybridUserRole();
   const [changingRole, setChangingRole] = useState(false);
   const router = useRouter();
 
   const handleRoleChange = async (newRoleType: RoleType) => {
-    const userId = getCurrentUserId();
+    const userId = userRole?.userId;
     if (!userId) {
       alert("Utilisateur non connecté");
       return;

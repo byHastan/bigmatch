@@ -4,7 +4,7 @@ import { DynamicBackground } from "@/components/ui/bouncing-ball";
 import { Button } from "@/components/ui/button";
 import { OptionCard } from "@/components/ui/option-card";
 import { RoleType } from "@/src/generated/prisma";
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { useSession } from "@/src/lib/auth-client";
 import {
   ROLES,
@@ -29,10 +29,10 @@ export default function Welcome() {
   const router = useRouter();
   const {
     createUserRole,
-    getLocalRole,
     userRole,
     isLoading: isUserRoleLoading,
-  } = useUserRole();
+    saveRole,
+  } = useHybridUserRole();
   const { data: session, isPending: isSessionLoading } = useSession();
 
   // Rediriger si l'utilisateur n'est pas connecté
@@ -99,8 +99,8 @@ export default function Welcome() {
       router.push(`/dashboard/${selectedRole.toLowerCase()}`);
     } catch (error) {
       console.error("Erreur lors de la création du rôle:", error);
-      // En cas d'erreur, on peut fallback sur localStorage
-      localStorage.setItem("userRole", selectedRole.toLowerCase());
+      // En cas d'erreur, on peut fallback sur cookies client
+      await saveRole(selectedRole.toLowerCase());
       router.push(`/dashboard/${selectedRole.toLowerCase()}`);
     } finally {
       setIsSubmitting(false);

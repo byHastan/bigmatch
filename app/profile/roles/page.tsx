@@ -1,21 +1,26 @@
 "use client";
 
-import { RoleManager } from "@/components/dashboard";
 import { ProtectedRoute } from "@/components/auth";
+import { RoleManager } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUserRole } from "@/src/hooks/useUserRole";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { ArrowLeft, Shield, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function UserRolesPage() {
   const router = useRouter();
-  const { userRole, getCurrentRoleType } = useUserRole();
+  const { userRole } = useHybridUserRole();
 
   const handleGoBack = () => {
-    const currentRole = getCurrentRoleType();
-    if (currentRole) {
-      router.push(`/dashboard/${currentRole.toLowerCase()}`);
+    if (userRole) {
+      router.push(`/dashboard/${userRole.roleType.toLowerCase()}`);
     } else {
       router.push("/dashboard");
     }
@@ -37,7 +42,7 @@ export default function UserRolesPage() {
                 <ArrowLeft className="w-4 h-4" />
                 <span>Retour</span>
               </Button>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center">
                   <Shield className="w-6 h-6 text-white" />
@@ -63,7 +68,8 @@ export default function UserRolesPage() {
                   <span>À propos des rôles</span>
                 </CardTitle>
                 <CardDescription>
-                  Les rôles déterminent les fonctionnalités auxquelles vous avez accès sur BigMatch.
+                  Les rôles déterminent les fonctionnalités auxquelles vous avez
+                  accès sur BigMatch.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -73,10 +79,13 @@ export default function UserRolesPage() {
                       <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-bold">O</span>
                       </div>
-                      <h3 className="font-semibold text-purple-900">Organisateur</h3>
+                      <h3 className="font-semibold text-purple-900">
+                        Organisateur
+                      </h3>
                     </div>
                     <p className="text-sm text-purple-700 mb-3">
-                      Créez et gérez des événements sportifs, définissez les règles et supervisez les compétitions.
+                      Créez et gérez des événements sportifs, définissez les
+                      règles et supervisez les compétitions.
                     </p>
                     <ul className="text-xs text-purple-600 space-y-1">
                       <li>• Créer des événements</li>
@@ -94,7 +103,8 @@ export default function UserRolesPage() {
                       <h3 className="font-semibold text-blue-900">Équipe</h3>
                     </div>
                     <p className="text-sm text-blue-700 mb-3">
-                      Rejoignez des événements en tant qu'équipe et gérez vos membres.
+                      Rejoignez des événements en tant qu'équipe et gérez vos
+                      membres.
                     </p>
                     <ul className="text-xs text-blue-600 space-y-1">
                       <li>• Rejoindre des compétitions</li>
@@ -112,7 +122,8 @@ export default function UserRolesPage() {
                       <h3 className="font-semibold text-green-900">Joueur</h3>
                     </div>
                     <p className="text-sm text-green-700 mb-3">
-                      Participez individuellement aux événements et suivez vos statistiques.
+                      Participez individuellement aux événements et suivez vos
+                      statistiques.
                     </p>
                     <ul className="text-xs text-green-600 space-y-1">
                       <li>• Rejoindre des événements</li>
@@ -127,7 +138,7 @@ export default function UserRolesPage() {
           </div>
 
           {/* Gestionnaire de rôles */}
-          <RoleManager 
+          <RoleManager
             onRoleChanged={() => {
               // Rediriger vers le nouveau dashboard après changement de rôle
               setTimeout(() => {
@@ -150,9 +161,18 @@ export default function UserRolesPage() {
                     </h4>
                     <ul className="text-sm text-yellow-700 space-y-1">
                       <li>• Vous pouvez changer votre rôle à tout moment</li>
-                      <li>• Le changement de rôle est immédiat et vous redirigera vers le dashboard correspondant</li>
-                      <li>• Certaines fonctionnalités nécessitent des rôles spécifiques</li>
-                      <li>• Vos données et préférences sont conservées lors du changement de rôle</li>
+                      <li>
+                        • Le changement de rôle est immédiat et vous redirigera
+                        vers le dashboard correspondant
+                      </li>
+                      <li>
+                        • Certaines fonctionnalités nécessitent des rôles
+                        spécifiques
+                      </li>
+                      <li>
+                        • Vos données et préférences sont conservées lors du
+                        changement de rôle
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -164,4 +184,3 @@ export default function UserRolesPage() {
     </ProtectedRoute>
   );
 }
-

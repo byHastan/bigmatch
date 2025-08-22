@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { signOut, useSession } from "@/src/lib/auth-client";
 import { ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS } from "@/src/lib/constants";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,11 @@ import { useEffect, useState } from "react";
 export default function Dashboard() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const { userRole, isLoading: isUserRoleLoading } = useUserRole();
+  const {
+    userRole,
+    isLoading: isUserRoleLoading,
+    saveRole,
+  } = useHybridUserRole();
   const { data: session, isPending: isSessionLoading } = useSession();
 
   // Rediriger automatiquement vers le bon rôle si l'utilisateur en a déjà un
@@ -27,16 +31,10 @@ export default function Dashboard() {
     }
   }, [session, isSessionLoading, router]);
 
-  useEffect(() => {
-    // Récupérer le rôle depuis localStorage (fallback)
-    const localRole = localStorage.getItem("userRole");
-    if (localRole) {
-      setSelectedRole(localRole);
-    }
-  }, []);
+  // Ce useEffect n'est plus nécessaire car useHybridUserRole gère automatiquement la récupération
 
-  const handleRoleSelect = (role: string) => {
-    localStorage.setItem("userRole", role);
+  const handleRoleSelect = async (role: string) => {
+    await saveRole(role);
     setSelectedRole(role);
 
     // Rediriger vers le bon dashboard
@@ -56,7 +54,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    localStorage.removeItem("userRole");
+    // Le hook useHybridUserRole nettoiera automatiquement les cookies lors de la déconnexion
     setSelectedRole(null);
     await signOut();
     router.push("/");

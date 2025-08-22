@@ -1,6 +1,6 @@
 "use client";
 
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { useSession } from "@/src/lib/auth-client";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy, Loader2, Share2 } from "lucide-react";
@@ -50,7 +50,7 @@ export default function CreateEventPage() {
 
   // Utiliser l'authentification Better Auth
   const { data: session, isPending: isSessionLoading } = useSession();
-  const { userRole, isLoading: isRoleLoading } = useUserRole();
+  const { userRole, isLoading: isRoleLoading } = useHybridUserRole();
   const [formData, setFormData] = useState<CreateEventForm>({
     name: "",
     description: "",

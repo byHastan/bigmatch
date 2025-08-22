@@ -6,6 +6,7 @@ import { Calendar, Home, LogOut, Trophy, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { signOut } from "@/src/lib/auth-client";
 
 interface DashboardHeaderProps {
@@ -25,10 +26,11 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { logout } = useHybridUserRole();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    localStorage.removeItem("userRole");
+    await logout(); // Nettoie les cookies sécurisés
     await signOut();
     router.push("/");
   };

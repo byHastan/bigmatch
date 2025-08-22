@@ -1,7 +1,7 @@
 "use client";
 
 import { RoleType } from "@/src/generated/prisma";
-import { useUserRole } from "@/src/hooks/useUserRole";
+import { useHybridUserRole } from "@/src/hooks/useHybridUserRole";
 import { useSession } from "@/src/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,7 +23,7 @@ export default function DashboardGuard({
 
   // Utiliser l'authentification Better Auth
   const { data: session, isPending: isSessionLoading } = useSession();
-  const { userRole, isLoading: isRoleLoading } = useUserRole();
+  const { userRole, isLoading: isRoleLoading } = useHybridUserRole();
 
   useEffect(() => {
     // Attendre que l'authentification et le rôle soient chargés

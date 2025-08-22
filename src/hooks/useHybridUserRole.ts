@@ -4,7 +4,7 @@ import { RoleType } from "@/src/generated/prisma";
 import { userRolesApi } from "@/src/lib/api";
 import { useSession } from "@/src/lib/auth-client";
 import apiClient from "@/src/lib/axios";
-import { UserRoleCookieService } from "@/src/lib/secure-cookies";
+import { UserRoleCookieService } from "@/src/lib/client-cookies";
 import { useEffect, useState } from "react";
 
 interface UserRole {
