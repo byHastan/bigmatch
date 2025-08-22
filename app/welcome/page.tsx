@@ -42,15 +42,16 @@ export default function Welcome() {
     }
   }, [session, isSessionLoading, router]);
 
-  // Rediriger automatiquement si l'utilisateur a déjà un rôle
+  // Rediriger automatiquement si l'utilisateur a déjà un VRAI rôle (pas un rôle temporaire)
   useEffect(() => {
     if (
       !isSessionLoading &&
       !isUserRoleLoading &&
       session?.user?.id &&
-      userRole
+      userRole &&
+      userRole.id !== "local" // Vérifier que ce n'est pas un rôle temporaire
     ) {
-      // L'utilisateur a déjà un rôle, le rediriger vers son dashboard
+      // L'utilisateur a déjà un vrai rôle, le rediriger vers son dashboard
       const rolePath = userRole.roleType.toLowerCase();
       router.push(`/dashboard/${rolePath}`);
     }
@@ -123,8 +124,8 @@ export default function Welcome() {
     );
   }
 
-  // Rediriger si pas d'utilisateur connecté ou si l'utilisateur a déjà un rôle
-  if (!session?.user?.id || userRole) {
+  // Rediriger si pas d'utilisateur connecté ou si l'utilisateur a déjà un VRAI rôle
+  if (!session?.user?.id || (userRole && userRole.id !== "local")) {
     return null; // Le useEffect s'occupera de la redirection
   }
 

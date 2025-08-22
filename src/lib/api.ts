@@ -120,4 +120,10 @@ export const userRolesApi = {
   delete: async (userRoleId: string): Promise<void> => {
     await apiClient.delete(`/user-roles/${userRoleId}`);
   },
+
+  // Changer le rôle principal de l'utilisateur
+  change: async (data: { roleType: string }): Promise<any> => {
+    const response = await apiClient.post("/user-roles/change", data);
+    return response.data.data || response.data;
+  },
 };

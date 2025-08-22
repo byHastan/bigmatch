@@ -22,6 +22,10 @@ interface UserRole {
   };
 }
 
+// Cache global pour éviter les appels API répétés
+let roleCache: { userRole: UserRole | null; timestamp: number } | null = null;
+const CACHE_DURATION = 30000; // 30 secondes
+
 /**
  * Hook hybride pour la gestion des rôles utilisateur
  * Utilise des cookies sécurisés httpOnly via API serveur quand possible,
@@ -180,11 +184,27 @@ export function useHybridUserRole() {
   };
 
   /**
-   * Récupérer le rôle utilisateur depuis l'API
+   * Récupérer le rôle utilisateur depuis l'API avec cache
    */
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string, useCache = true) => {
     try {
+      // Vérifier le cache si demandé
+      if (
+        useCache &&
+        roleCache &&
+        Date.now() - roleCache.timestamp < CACHE_DURATION
+      ) {
+        return roleCache.userRole;
+      }
+
       const response = await userRolesApi.getMyRole();
+
+      // Mettre à jour le cache
+      roleCache = {
+        userRole: response.userRole,
+        timestamp: Date.now(),
+      };
+
       return response.userRole;
     } catch (err) {
       console.error("Erreur lors de la récupération du rôle:", err);
@@ -200,6 +220,9 @@ export function useHybridUserRole() {
       try {
         // Attendre que la session soit chargée
         if (isSessionLoading) return;
+
+        // Éviter les appels multiples si déjà en cours de chargement ou si on a déjà un rôle valide
+        if (userRole && userRole.id !== "local") return;
 
         // Si l'utilisateur est connecté, récupérer son rôle depuis l'API
         if (session?.user?.id) {
@@ -220,21 +243,27 @@ export function useHybridUserRole() {
           secureRole = await migrateFromLocalStorage();
         }
 
-        if (secureRole) {
+        // IMPORTANT: Ne créer un rôle temporaire que si l'utilisateur est connecté
+        // et qu'il n'y a pas de vrai rôle dans l'API
+        // Cela évite les redirections incorrectes sur /welcome
+        if (secureRole && session?.user?.id) {
           const tempUserRole: UserRole = {
             id: "local",
-            userId: session?.user?.id || "local",
+            userId: session.user.id,
             roleType: secureRole.toUpperCase() as RoleType,
             isActive: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             user: {
-              id: session?.user?.id || "local",
-              email: session?.user?.email || "",
-              name: session?.user?.name || null,
+              id: session.user.id,
+              email: session.user.email || "",
+              name: session.user.name || null,
             },
           };
           setUserRole(tempUserRole);
+        } else {
+          // Pas de rôle trouvé, nettoyer les cookies obsolètes
+          await clearRole();
         }
 
         setIsLoading(false);
@@ -259,6 +288,9 @@ export function useHybridUserRole() {
       const response = await userRolesApi.create({ userId, roleType });
       setUserRole(response);
 
+      // Invalider le cache après création
+      roleCache = null;
+
       // Sauvegarder de manière hybride
       await saveRole(roleType.toLowerCase());
 
@@ -281,18 +313,14 @@ export function useHybridUserRole() {
       setIsLoading(true);
       setError(null);
 
-      // Désactiver tous les rôles existants puis créer le nouveau
-      if (userRole?.id) {
-        await userRolesApi.update(userRole.id, {
-          isActive: false,
-        });
-      }
-
-      const newRole = await userRolesApi.create({
-        userId,
+      // Utiliser la nouvelle API de changement de rôle
+      const newRole = await userRolesApi.change({
         roleType: newRoleType,
       });
       setUserRole(newRole);
+
+      // Invalider le cache après changement
+      roleCache = null;
 
       // Mettre à jour de manière hybride
       await saveRole(newRoleType.toLowerCase());
@@ -315,6 +343,8 @@ export function useHybridUserRole() {
     await clearRole();
     setUserRole(null);
     setError(null);
+    // Invalider le cache lors de la déconnexion
+    roleCache = null;
   };
 
   /**

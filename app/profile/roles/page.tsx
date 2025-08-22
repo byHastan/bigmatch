@@ -27,7 +27,7 @@ export default function UserRolesPage() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowRoleManagement={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* Header */}
@@ -52,11 +52,58 @@ export default function UserRolesPage() {
                     Gestion des rôles
                   </h1>
                   <p className="text-gray-600">
-                    Gérez vos rôles et permissions sur BigMatch
+                    Changez votre rôle et accédez aux différentes
+                    fonctionnalités
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Bouton rapide pour créer un nouveau rôle si aucun */}
+            {(!userRole || userRole.id === "local") && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-yellow-800">
+                      Aucun rôle principal défini
+                    </h3>
+                    <p className="text-sm text-yellow-700">
+                      Choisissez un rôle ci-dessous pour commencer à utiliser
+                      BigMatch
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Message de succès après changement de rôle */}
+            {userRole && userRole.id !== "local" && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-green-800">Rôle actif</h3>
+                      <p className="text-sm text-green-700">
+                        Vous pouvez changer de rôle à tout moment ci-dessous
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleGoBack}
+                    className="border-green-300 text-green-700 hover:bg-green-100"
+                  >
+                    Retour au dashboard
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Informations sur les rôles */}
@@ -140,10 +187,12 @@ export default function UserRolesPage() {
           {/* Gestionnaire de rôles */}
           <RoleManager
             onRoleChanged={() => {
-              // Rediriger vers le nouveau dashboard après changement de rôle
-              setTimeout(() => {
-                handleGoBack();
-              }, 1000);
+              // Option 1: Rester sur la page de gestion des rôles
+              // (L'utilisateur peut naviguer manuellement via le bouton "Retour")
+              // Option 2: Rediriger après un délai (décommentez les lignes ci-dessous)
+              // setTimeout(() => {
+              //   handleGoBack();
+              // }, 2000);
             }}
           />
 

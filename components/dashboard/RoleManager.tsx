@@ -70,36 +70,52 @@ function RoleManager({
   requiredRole,
   onRoleChanged,
 }: RoleManagerProps) {
-  const { userRole, changeUserRole, isLoading } = useHybridUserRole();
+  const { userRole, changeUserRole, createUserRole, isLoading } =
+    useHybridUserRole();
   const [changingRole, setChangingRole] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
 
   const handleRoleChange = async (newRoleType: RoleType) => {
     const userId = userRole?.userId;
     if (!userId) {
-      alert("Utilisateur non connecté");
+      setSuccessMessage("❌ Utilisateur non connecté");
+      setTimeout(() => setSuccessMessage(null), 3000);
       return;
     }
 
     try {
       setChangingRole(true);
-      await changeUserRole(userId, newRoleType);
 
-      alert(
-        `Vous êtes maintenant ${
-          roleOptions.find((r) => r.id === newRoleType)?.label
-        }`
+      // Si l'utilisateur a un rôle temporaire (id: "local"), créer un nouveau rôle
+      // Sinon, changer le rôle existant
+      if (userRole?.id === "local") {
+        await createUserRole(userId, newRoleType);
+      } else {
+        await changeUserRole(userId, newRoleType);
+      }
+
+      const roleLabel = roleOptions.find((r) => r.id === newRoleType)?.label;
+      setSuccessMessage(
+        `Rôle changé avec succès ! Vous êtes maintenant ${roleLabel}.`
       );
 
-      // Rediriger vers le dashboard correspondant
-      router.push(`/dashboard/${newRoleType.toLowerCase()}`);
+      // Masquer le message après 3 secondes
+      setTimeout(() => setSuccessMessage(null), 3000);
 
+      // Laisser le callback parent gérer la redirection
       if (onRoleChanged) {
         onRoleChanged();
+      } else {
+        // Seulement rediriger si pas de callback (par défaut)
+        router.push(`/dashboard/${newRoleType.toLowerCase()}`);
       }
     } catch (error) {
       console.error("Erreur lors du changement de rôle:", error);
-      alert("Impossible de changer le rôle. Veuillez réessayer.");
+      setSuccessMessage(
+        "❌ Impossible de changer le rôle. Veuillez réessayer."
+      );
+      setTimeout(() => setSuccessMessage(null), 3000);
     } finally {
       setChangingRole(false);
     }
@@ -120,6 +136,30 @@ function RoleManager({
 
   return (
     <div className="space-y-4">
+      {/* Message de succès/erreur */}
+      {successMessage && (
+        <Card
+          className={`border-2 ${
+            successMessage.includes("❌")
+              ? "border-red-200 bg-red-50"
+              : "border-green-200 bg-green-50"
+          }`}
+        >
+          <CardContent className="p-4">
+            <div
+              className={`flex items-center space-x-2 ${
+                successMessage.includes("❌")
+                  ? "text-red-700"
+                  : "text-green-700"
+              }`}
+            >
+              <CheckCircle className="w-5 h-5" />
+              <p className="font-medium">{successMessage}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {showError && requiredRole && (
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-4">
@@ -152,27 +192,69 @@ function RoleManager({
         <CardContent className="space-y-4">
           {/* Rôle actuel */}
           {userRole && (
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            <div
+              className={`p-4 rounded-lg border ${
+                userRole.id === "local"
+                  ? "bg-yellow-50 border-yellow-200"
+                  : "bg-green-50 border-green-200"
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <CheckCircle
+                    className={`w-5 h-5 ${
+                      userRole.id === "local"
+                        ? "text-yellow-600"
+                        : "text-green-600"
+                    }`}
+                  />
                   <div>
-                    <p className="font-medium text-green-800">Rôle actuel</p>
-                    <p className="text-sm text-green-600">
+                    <p
+                      className={`font-medium ${
+                        userRole.id === "local"
+                          ? "text-yellow-800"
+                          : "text-green-800"
+                      }`}
+                    >
+                      {userRole.id === "local"
+                        ? "Rôle temporaire"
+                        : "Rôle actuel"}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        userRole.id === "local"
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      }`}
+                    >
                       {
                         roleOptions.find((r) => r.id === userRole.roleType)
                           ?.label
                       }
+                      {userRole.id === "local" && " (non sauvegardé)"}
                     </p>
                   </div>
                 </div>
                 <Badge
                   variant="secondary"
-                  className="bg-green-100 text-green-800 border-green-200"
+                  className={
+                    userRole.id === "local"
+                      ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                      : "bg-green-100 text-green-800 border-green-200"
+                  }
                 >
-                  Actif
+                  {userRole.id === "local" ? "Temporaire" : "Actif"}
                 </Badge>
               </div>
+              {userRole.id === "local" && (
+                <div className="mt-3 p-3 bg-yellow-100 rounded-lg">
+                  <p className="text-xs text-yellow-700">
+                    💡 Ce rôle n'est pas encore sauvegardé. Choisissez un
+                    nouveau rôle ci-dessous pour le confirmer et l'enregistrer
+                    définitivement.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

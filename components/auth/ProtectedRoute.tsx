@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
   requiredRole?: RoleType;
   fallbackPath?: string;
   requireAuth?: boolean;
+  allowRoleManagement?: boolean; // Nouvelle prop pour permettre la gestion des rôles
 }
 
 export default function ProtectedRoute({
@@ -18,6 +19,7 @@ export default function ProtectedRoute({
   requiredRole,
   fallbackPath = "/welcome",
   requireAuth = true,
+  allowRoleManagement = false,
 }: ProtectedRouteProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,13 +64,16 @@ export default function ProtectedRoute({
       }
     } else {
       // Pas de rôle requis, juste vérifier l'authentification
-      if (userRole) {
-        // L'utilisateur a un rôle, rediriger vers son dashboard
+      if (userRole && !allowRoleManagement) {
+        // L'utilisateur a un rôle et ce n'est pas une page de gestion → rediriger vers son dashboard
         const dashboardPath = `/dashboard/${userRole.roleType.toLowerCase()}`;
         router.push(dashboardPath);
-      } else {
-        // Pas de rôle, rediriger vers la page de sélection
+      } else if (!userRole && !allowRoleManagement) {
+        // Pas de rôle et ce n'est pas une page de gestion → rediriger vers la page de sélection
         router.push(fallbackPath);
+      } else {
+        // Page de gestion des rôles → autoriser l'accès
+        setIsAuthorized(true);
       }
     }
 
@@ -81,6 +86,7 @@ export default function ProtectedRoute({
     requiredRole,
     fallbackPath,
     requireAuth,
+    allowRoleManagement,
     router,
   ]);
 

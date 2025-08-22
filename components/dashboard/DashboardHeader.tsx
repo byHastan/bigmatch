@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Home, LogOut, Trophy, Users } from "lucide-react";
+import { Calendar, Home, LogOut, Shield, Trophy, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -139,6 +139,20 @@ export default function DashboardHeader({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
+            {/* Bouton de gestion des rôles */}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/profile/roles")}
+                className="relative overflow-hidden border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+              >
+                <div className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">Rôles</span>
+                </div>
+              </Button>
+            </motion.div>
+
             {/* Bouton de déconnexion */}
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
