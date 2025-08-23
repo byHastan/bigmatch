@@ -161,7 +161,15 @@ export async function PUT(
     }
 
     // Validation du statut
-    const validStatuses = ["DRAFT", "ACTIVE", "COMPLETED", "CANCELLED"];
+    const validStatuses = [
+      "DRAFT",
+      "PUBLISHED",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "CANCELLED"
+    ];
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json(
         {

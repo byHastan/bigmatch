@@ -25,8 +25,16 @@ export async function PUT(
     const body = await request.json();
     const { status } = body;
 
-    // Validation du statut
-    const validStatuses = ["DRAFT", "ACTIVE", "COMPLETED", "CANCELLED"];
+    // Validation du statut avec les nouveaux statuts de l'énumération
+    const validStatuses = [
+      "DRAFT",
+      "PUBLISHED",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "CANCELLED",
+    ];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "Statut invalide" }, { status: 400 });
     }
@@ -140,7 +148,9 @@ export async function GET(
         currentTeams: event.teams.length,
         maxTeams: event.maxTeams,
         canAcceptRegistrations:
-          event.status === "DRAFT" || event.status === "ACTIVE",
+          event.status === "DRAFT" ||
+          event.status === "PUBLISHED" ||
+          event.status === "REGISTRATION_OPEN",
         statusDescription: getStatusDescription(event.status),
       },
     });
@@ -156,13 +166,19 @@ export async function GET(
 function getStatusDescription(status: string): string {
   switch (status) {
     case "DRAFT":
-      return "Brouillon - Les inscriptions sont ouvertes";
-    case "ACTIVE":
-      return "Actif - Les inscriptions sont ouvertes";
+      return "Brouillon - L'événement est en cours de création";
+    case "PUBLISHED":
+      return "Publié - L'événement est visible publiquement";
+    case "REGISTRATION_OPEN":
+      return "Inscriptions ouvertes - Les équipes peuvent s'inscrire";
+    case "REGISTRATION_CLOSED":
+      return "Inscriptions fermées - Plus d'inscriptions acceptées";
+    case "IN_PROGRESS":
+      return "En cours - L'événement se déroule actuellement";
     case "COMPLETED":
-      return "Terminé - Les inscriptions sont fermées";
+      return "Terminé - L'événement est terminé";
     case "CANCELLED":
-      return "Annulé - Les inscriptions sont fermées";
+      return "Annulé - L'événement a été annulé";
     default:
       return "Statut inconnu";
   }

@@ -21,6 +21,16 @@ enum RoleType {
   JOUEUR
 }
 
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id            String     @id @default(uuid())
   email         String     @unique
@@ -94,7 +104,7 @@ model Verification {
 }
 
 model Event {
-  id               String   @id @default(uuid())
+  id               String      @id @default(uuid())
   name             String
   description      String?
   type             String // CUP, PLAYOFF, LEAGUE
@@ -102,16 +112,16 @@ model Event {
   time             String?
   location         String?
   rules            Json?
-  registrationCode String   @unique
+  registrationCode String      @unique
   maxTeams         Int?
   maxPlayers       Int?
-  status           String   @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, CANCELLED
-  isPrivate        Boolean  @default(false) // Indique si l'événement est privé ou public
+  status           EventStatus @default(DRAFT)
+  isPrivate        Boolean     @default(false) // Indique si l'événement est privé ou public
   organizerId      String
-  organizer        User     @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  organizer        User        @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   teams            Team[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   @@map("event")
 }
