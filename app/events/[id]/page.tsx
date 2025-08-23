@@ -16,9 +16,19 @@ import {
   useUpdateEvent,
   useUpdateEventStatus,
 } from "@/src/hooks/useEvent";
+import { useMatches } from "@/src/hooks/useMatches";
+import { useSecureUserRole } from "@/src/hooks/useSecureUserRole";
 import { useToast } from "@/src/hooks/useToast";
 import { EventStatus, UpdateEventData } from "@/src/types/event";
-import { ArrowLeft, Edit, Eye } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  Edit,
+  Eye,
+  Target,
+  Trophy,
+  Users,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -39,6 +49,14 @@ export default function EventDetailPage() {
 
   // Récupérer l'événement
   const { data: event, isLoading, error } = useEvent(eventId);
+
+  // Récupérer les matchs pour les statistiques
+  const { data: matches } = useMatches(eventId);
+
+  // Vérifier les permissions utilisateur
+  const { userRole } = useSecureUserRole();
+
+  const isOrganizer = userRole?.roleType === "ORGANISATEUR";
 
   // Callback pour fermer le mode édition après la mise à jour
   const handleUpdateSuccess = () => {
@@ -223,6 +241,105 @@ export default function EventDetailPage() {
 
         {/* Colonne latérale - Réorganisée pour mobile */}
         <div className="space-y-4 sm:space-y-6 order-3">
+          {/* Actions de gestion des matchs */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Gestion des matchs
+              </h3>
+
+              <div className="space-y-3">
+                {/* Voir les matchs */}
+                <Button
+                  onClick={() => router.push(`/events/${eventId}/matches`)}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  Voir tous les matchs
+                  {matches && matches.length > 0 && (
+                    <span className="ml-auto bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
+                      {matches.length}
+                    </span>
+                  )}
+                </Button>
+
+                {/* Dashboard organisateur */}
+                {isOrganizer && (
+                  <Button
+                    onClick={() => router.push(`/events/${eventId}/dashboard`)}
+                    className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    Dashboard organisateur
+                  </Button>
+                )}
+
+                {/* Créer un match */}
+                {isOrganizer && (
+                  <Button
+                    onClick={() =>
+                      router.push(`/events/${eventId}/matches/create`)
+                    }
+                    variant="outline"
+                    className="w-full justify-start text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Créer un match
+                  </Button>
+                )}
+              </div>
+
+              {/* Statistiques des matchs */}
+              {matches && matches.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    État des matchs
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">En direct:</span>
+                      <span className="font-medium text-red-600">
+                        {matches.filter((m) => m.status === "LIVE").length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Programmés:</span>
+                      <span className="font-medium text-blue-600">
+                        {matches.filter((m) => m.status === "SCHEDULED").length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Terminés:</span>
+                      <span className="font-medium text-green-600">
+                        {matches.filter((m) => m.status === "COMPLETED").length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Total:</span>
+                      <span className="font-medium text-gray-900">
+                        {matches.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Message si pas de matchs */}
+              {(!matches || matches.length === 0) && (
+                <div className="mt-4 pt-4 border-t text-center">
+                  <Trophy className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Aucun match créé</p>
+                  {isOrganizer && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Créez votre premier match pour commencer
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Statut et actions rapides */}
           <EventStatusActions
             event={event}
