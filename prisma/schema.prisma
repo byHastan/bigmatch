@@ -31,6 +31,14 @@ enum EventStatus {
   CANCELLED
 }
 
+enum MatchStatus {
+  SCHEDULED // Planifié
+  LIVE // En cours
+  COMPLETED // Terminé
+  CANCELLED // Annulé
+  WALKOVER // Forfait
+}
+
 model User {
   id            String     @id @default(uuid())
   email         String     @unique
@@ -104,24 +112,26 @@ model Verification {
 }
 
 model Event {
-  id               String      @id @default(uuid())
+  id               String        @id @default(uuid())
   name             String
   description      String?
-  type             String // CUP, PLAYOFF, LEAGUE
+  type             String // CUP, PLAYOFF, LEAGUE, MATCH, CHAMPIONSHIP
   date             DateTime
   time             String?
   location         String?
   rules            Json?
-  registrationCode String      @unique
+  registrationCode String        @unique
   maxTeams         Int?
   maxPlayers       Int?
-  status           EventStatus @default(DRAFT)
-  isPrivate        Boolean     @default(false) // Indique si l'événement est privé ou public
+  status           EventStatus   @default(DRAFT)
+  isPrivate        Boolean       @default(false) // Indique si l'événement est privé ou public
   organizerId      String
-  organizer        User        @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  organizer        User          @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   teams            Team[]
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  matches          Match[]
+  rankings         TeamRanking[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@map("event")
 }
@@ -135,8 +145,15 @@ model Team {
   eventId     String
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   players     Player[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  // Relations pour les matchs
+  matchesA  Match[]      @relation("TeamAMatches")
+  matchesB  Match[]      @relation("TeamBMatches")
+  victories Match[]      @relation("WinnerMatches")
+  ranking   TeamRanking?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("team")
 }
@@ -154,4 +171,66 @@ model Player {
   updatedAt DateTime @updatedAt
 
   @@map("player")
+}
+
+model Match {
+  id      String @id @default(uuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Équipes participantes
+  teamAId String?
+  teamBId String?
+  teamA   Team?   @relation("TeamAMatches", fields: [teamAId], references: [id])
+  teamB   Team?   @relation("TeamBMatches", fields: [teamBId], references: [id])
+
+  // Informations du match
+  round    Int? // Phase (8ème, quart, demi, finale, etc.)
+  position Int? // Position dans l'arbre du tournoi
+  status   MatchStatus @default(SCHEDULED)
+
+  // Résultats
+  scoreA   Int?    @default(0)
+  scoreB   Int?    @default(0)
+  winnerId String?
+  winner   Team?   @relation("WinnerMatches", fields: [winnerId], references: [id])
+
+  // Matchs parents pour l'arbre du tournoi
+  parentMatchId String?
+  parentMatch   Match?  @relation("MatchTree", fields: [parentMatchId], references: [id])
+  childMatches  Match[] @relation("MatchTree")
+
+  // Dates
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("match")
+}
+
+model TeamRanking {
+  id      String @id @default(uuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  teamId  String @unique
+  team    Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Statistiques
+  played       Int @default(0)
+  wins         Int @default(0)
+  draws        Int @default(0)
+  losses       Int @default(0)
+  goalsFor     Int @default(0)
+  goalsAgainst Int @default(0)
+  goalDiff     Int @default(0)
+  points       Int @default(0)
+  position     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, teamId])
+  @@map("team_ranking")
 }

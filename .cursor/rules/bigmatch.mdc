@@ -1,0 +1,440 @@
+---
+alwaysApply: true
+---
+
+# 🚀 Règles Next.js v15 - Performance & Temps Réel
+
+## 📋 Contexte du Projet
+
+- Framework: Next.js v15 avec App Router
+- Base de données: PostgreSQL + Prisma
+- UI: React 18+ avec composants modernes
+- Objectifs: Performance maximale, temps réel, optimisation des requêtes
+
+---
+
+## 🎯 Règles de Performance Obligatoires
+
+### 1. Structure des Composants
+
+- TOUJOURS utiliser React Server Components par défaut
+- Marquer explicitement "use client" UNIQUEMENT si nécessaire (hooks, événements, state)
+- Préférer les composants serveur pour les données statiques/semi-statiques
+- Éviter les re-renders inutiles avec React.memo() pour les composants coûteux
+
+### 2. Gestion des Données
+
+- OBLIGATOIRE: Utiliser TanStack Query v5 pour toutes les requêtes côté client
+- OBLIGATOIRE: Implémenter le cache avec staleTime et gcTime appropriés
+- Utiliser React Query DevTools en développement
+- Optimistic Updates pour les mutations critiques (scores, matchs)
+
+### 3. Chargement et Streaming
+
+- TOUJOURS utiliser loading.tsx pour les pages avec données
+- Implémenter Suspense boundaries pour les composants async
+- Utiliser streaming SSR avec { loading } pour les composants lents
+- Précharger les routes critiques avec next/link prefetch
+
+### 4. Images et Assets
+
+- OBLIGATOIRE: next/image pour toutes les images
+- Spécifier width/height explicitement
+- Utiliser placeholder="blur" avec blurDataURL
+- Optimiser les logos d'équipes avec sizes appropriés
+
+---
+
+## ⚡ TanStack Query - Configuration Optimale
+
+### Configuration Globale
+
+```typescript
+// lib/query-client.ts
+import { QueryClient } from "@tanstack/react-query";
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: (failureCount, error) => {
+        if (error.status === 404) return false;
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: "always",
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
+```
+
+### Hooks Standards à Créer
+
+- `useEvents()` - Cache 5min, refetch en arrière-plan
+- `useMatches(eventId)` - Cache 1min, refetch automatique
+- `useScores(matchId)` - Cache 30s, polling actif si match live
+- `useRankings(eventId)` - Cache 2min, invalidation après match
+
+### Patterns d'Optimisation
+
+```typescript
+// Bon: Prefetch des données critiques
+const prefetchMatchData = () => {
+  queryClient.prefetchQuery({
+    queryKey: ["matches", eventId],
+    queryFn: () => fetchMatches(eventId),
+    staleTime: 60 * 1000,
+  });
+};
+
+// Bon: Optimistic updates pour les scores
+const updateScore = useMutation({
+  mutationFn: updateMatchScore,
+  onMutate: async (newScore) => {
+    await queryClient.cancelQueries(["match", matchId]);
+    const previousMatch = queryClient.getQueryData(["match", matchId]);
+    queryClient.setQueryData(["match", matchId], newScore);
+    return { previousMatch };
+  },
+  onError: (err, newScore, context) => {
+    queryClient.setQueryData(["match", matchId], context.previousMatch);
+  },
+  onSettled: () => {
+    queryClient.invalidateQueries(["match", matchId]);
+  },
+});
+```
+
+---
+
+## 🔄 Temps Réel - WebSockets & Server-Sent Events
+
+### 1. Choix de la Technologie
+
+- WebSockets via Socket.io pour les matchs en direct (scores, timer)
+- Server-Sent Events pour les notifications moins critiques
+- TanStack Query + polling pour les données semi-temps réel
+
+### 2. Configuration Socket.io
+
+```typescript
+// lib/socket.ts
+import { io } from "socket.io-client";
+
+export const socket = io(process.env.NEXT_PUBLIC_WS_URL, {
+  autoConnect: false,
+  transports: ["websocket", "polling"],
+  upgrade: true,
+});
+
+// Hook d'intégration avec React Query
+export const useSocketSync = (matchId: string) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    socket.on(`match:${matchId}:score`, (data) => {
+      queryClient.setQueryData(["match", matchId], data);
+    });
+
+    socket.on(`match:${matchId}:timer`, (timerData) => {
+      queryClient.setQueryData(["match", matchId, "timer"], timerData);
+    });
+
+    return () => {
+      socket.off(`match:${matchId}:score`);
+      socket.off(`match:${matchId}:timer`);
+    };
+  }, [matchId, queryClient]);
+};
+```
+
+### 3. Polling Intelligent
+
+```typescript
+// Hook avec polling adaptatif
+const useMatchWithPolling = (matchId: string) => {
+  const { data: match } = useQuery({
+    queryKey: ["match", matchId],
+    queryFn: () => fetchMatch(matchId),
+    refetchInterval: (data) => {
+      if (data?.status === "LIVE") return 5000; // 5s si match live
+      if (data?.status === "SCHEDULED") return 30000; // 30s si programmé
+      return false; // Pas de polling si terminé
+    },
+  });
+
+  return match;
+};
+```
+
+---
+
+## 🗃️ Optimisation Base de Données & APIs
+
+### 1. Requêtes Prisma Optimisées
+
+```typescript
+// Bon: Include seulement les données nécessaires
+const getEventWithMatches = async (eventId: string) => {
+  return prisma.event.findUnique({
+    where: { id: eventId },
+    include: {
+      teams: {
+        select: { id: true, name: true, logo: true },
+        orderBy: { name: "asc" },
+      },
+      matches: {
+        where: { status: { in: ["SCHEDULED", "LIVE"] } },
+        select: {
+          id: true,
+          scoreA: true,
+          scoreB: true,
+          status: true,
+          teamA: { select: { id: true, name: true } },
+          teamB: { select: { id: true, name: true } },
+        },
+      },
+    },
+  });
+};
+
+// Éviter: Over-fetching
+// ❌ include: { teams: { include: { players: true } } }
+```
+
+### 2. Cache Strategy par Route API
+
+```typescript
+// app/api/events/[id]/route.ts
+export async function GET(request, { params }) {
+  const event = await getEventWithTeams(params.id);
+
+  return NextResponse.json(event, {
+    headers: {
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
+      "CDN-Cache-Control": "public, s-maxage=300",
+    },
+  });
+}
+
+// app/api/matches/[id]/scores/route.ts - Temps réel
+export async function GET() {
+  return NextResponse.json(scores, {
+    headers: {
+      "Cache-Control": "no-cache, must-revalidate",
+    },
+  });
+}
+```
+
+### 3. Background Jobs avec Queues
+
+```typescript
+// lib/jobs/match-processor.ts - Pour les calculs lourds
+import { Queue } from "bull";
+
+export const matchQueue = new Queue("match processing");
+
+matchQueue.process("updateRankings", async (job) => {
+  const { eventId } = job.data;
+  await recalculateRankings(eventId);
+
+  // Invalider les caches pertinents
+  await revalidateTag(`rankings:${eventId}`);
+});
+
+// Déclencher après chaque match terminé
+export const triggerRankingUpdate = (eventId: string) => {
+  matchQueue.add(
+    "updateRankings",
+    { eventId },
+    {
+      delay: 2000, // 2s de délai
+      removeOnComplete: 5,
+      removeOnFail: 3,
+    }
+  );
+};
+```
+
+---
+
+## 🔧 Librairies Recommandées
+
+### 1. Performance & State
+
+```json
+{
+  "@tanstack/react-query": "^5.0.0",
+  "@tanstack/react-query-devtools": "^5.0.0",
+  "zustand": "^4.4.0",
+  "immer": "^10.0.0",
+  "react-hook-form": "^7.48.0",
+  "zod": "^3.22.0"
+}
+```
+
+### 2. Temps Réel & Communication
+
+```json
+{
+  "socket.io-client": "^4.7.0",
+  "sse.js": "^2.3.0",
+  "ws": "^8.14.0"
+}
+```
+
+### 3. UI & Animations
+
+```json
+{
+  "framer-motion": "^10.16.0",
+  "react-intersection-observer": "^9.5.0",
+  "react-virtualized-auto-sizer": "^1.0.0",
+  "react-window": "^1.8.0"
+}
+```
+
+### 4. Utils & Performance
+
+```json
+{
+  "lodash-es": "^4.17.0",
+  "date-fns": "^2.30.0",
+  "bull": "^4.11.0",
+  "ioredis": "^5.3.0",
+  "sharp": "^0.32.0"
+}
+```
+
+---
+
+## 📏 Patterns d'Optimisation Obligatoires
+
+### 1. Code Splitting Intelligent
+
+```typescript
+// Lazy loading des composants lourds
+const TournamentBracket = lazy(() => import("./TournamentBracket"));
+const MatchTimer = lazy(() => import("./MatchTimer"));
+
+// Précharger les composants critiques
+const prefetchComponents = () => {
+  import("./TournamentBracket");
+  import("./ScoreBoard");
+};
+```
+
+### 2. Memoization Stratégique
+
+```typescript
+// Mémoiser les calculs coûteux
+const ExpensiveChart = memo(({ data, filters }) => {
+  const processedData = useMemo(() => {
+    return heavyCalculation(data, filters);
+  }, [data, filters]);
+
+  return <Chart data={processedData} />;
+});
+
+// Callback stable pour éviter re-renders
+const useStableCallback = (callback, deps) => {
+  return useCallback(callback, deps);
+};
+```
+
+### 3. Virtualisation pour Grandes Listes
+
+```typescript
+import { FixedSizeList as List } from "react-window";
+
+const VirtualizedRankings = ({ teams }) => (
+  <List height={400} itemCount={teams.length} itemSize={60} itemData={teams}>
+    {({ index, data, style }) => (
+      <div style={style}>
+        <RankingRow team={data[index]} />
+      </div>
+    )}
+  </List>
+);
+```
+
+---
+
+## 🚨 Anti-Patterns à Éviter
+
+### ❌ Ne JAMAIS Faire
+
+- Fetcher des données dans useEffect côté client si disponible côté serveur
+- Utiliser useState pour des données serveur (utiliser TanStack Query)
+- Oublier les key props dans les listes dynamiques
+- Imbriquer des Suspense boundaries inutilement
+- Polling constant sans condition d'arrêt
+- Mutations sans optimistic updates pour l'UX critique
+
+### ✅ Toujours Faire
+
+- Préférer les Server Actions aux API routes quand possible
+- Implémenter error boundaries pour la résilience
+- Utiliser les TypeScript generics pour la type safety
+- Validator les données avec Zod avant traitement
+- Monitorer les performances avec Next.js Analytics
+- Implémenter le retry logic pour les requêtes critiques
+
+---
+
+## 🔍 Monitoring & Debug
+
+### 1. Performance Monitoring
+
+```typescript
+// lib/analytics.ts
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from "web-vitals";
+
+export const reportWebVitals = (metric) => {
+  // Envoyer les métriques à votre service d'analytics
+  analytics.track("Web Vitals", {
+    name: metric.name,
+    value: metric.value,
+    id: metric.id,
+  });
+};
+```
+
+### 2. Error Boundaries Globales
+
+```typescript
+"use client";
+import { ErrorBoundary } from "react-error-boundary";
+
+function ErrorFallback({ error, resetErrorBoundary }) {
+  return (
+    <div role="alert" className="error-boundary">
+      <h2>Oups, une erreur s'est produite!</h2>
+      <button onClick={resetErrorBoundary}>Réessayer</button>
+    </div>
+  );
+}
+
+export default function RootErrorBoundary({ children }) {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
+  );
+}
+```
+
+---
+
+## ⚖️ Règles de Commit
+
+- Préfixer les commits: feat:, fix:, perf:, refactor:
+- Tester les Web Vitals avant chaque push
+- Vérifier que les queries TanStack Query ont des keys appropriées
+- S'assurer que les composants Server/Client sont bien délimités
+- Valider les performances avec Lighthouse (score > 90)
+
+**🎯 Objectif: Application ultra-rapide, temps réel fluide, expérience utilisateur exceptionnelle!**
