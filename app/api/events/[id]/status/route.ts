@@ -6,6 +6,20 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  return updateEventStatus(request, params);
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return updateEventStatus(request, params);
+}
+
+async function updateEventStatus(
+  request: NextRequest,
+  params: Promise<{ id: string }>
+) {
   try {
     // Récupérer la session de l'utilisateur connecté
     const session = await auth.api.getSession({
@@ -23,7 +37,31 @@ export async function PUT(
     const { id } = await params;
 
     const body = await request.json();
+    console.log("Corps de la requête reçu:", body);
+
     const { status } = body;
+    console.log("Statut extrait:", status);
+
+    // Vérifier que le statut est présent
+    if (!status) {
+      console.log("Erreur: Statut manquant dans le corps de la requête");
+      return NextResponse.json(
+        {
+          error: "Le champ 'status' est requis dans le corps de la requête",
+          receivedBody: body,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Normaliser le statut reçu (convertir en majuscules et gérer les variations)
+    const normalizedStatus = status
+      .toString()
+      .toUpperCase()
+      .replace(/\s+/g, "_")
+      .replace(/-/g, "_");
+
+    console.log("Statut normalisé:", normalizedStatus);
 
     // Validation du statut avec les nouveaux statuts de l'énumération
     const validStatuses = [
@@ -35,9 +73,26 @@ export async function PUT(
       "COMPLETED",
       "CANCELLED",
     ];
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json({ error: "Statut invalide" }, { status: 400 });
+
+    console.log("Statuts valides:", validStatuses);
+    console.log("Statut reçu:", status, "Type:", typeof status);
+    console.log("Statut normalisé:", normalizedStatus);
+
+    if (!validStatuses.includes(normalizedStatus)) {
+      console.log("Erreur: Statut invalide reçu:", status);
+      return NextResponse.json(
+        {
+          error: "Statut invalide",
+          receivedStatus: status,
+          normalizedStatus: normalizedStatus,
+          validStatuses: validStatuses,
+        },
+        { status: 400 }
+      );
     }
+
+    // Utiliser le statut normalisé pour la suite
+    const finalStatus = normalizedStatus;
 
     // Vérifier que l'événement existe et que l'utilisateur est l'organisateur
     const event = await prisma.event.findUnique({
@@ -62,7 +117,7 @@ export async function PUT(
     // Mettre à jour le statut
     const updatedEvent = await prisma.event.update({
       where: { id },
-      data: { status },
+      data: { status: finalStatus },
       include: {
         teams: {
           include: {
@@ -74,7 +129,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: `Statut de l'événement mis à jour vers ${status}`,
+      message: `Statut de l'événement mis à jour vers ${finalStatus}`,
       data: {
         id: updatedEvent.id,
         name: updatedEvent.name,
