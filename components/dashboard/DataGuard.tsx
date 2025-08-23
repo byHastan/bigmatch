@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { LoadingSpinner } from "./LoadingSpinner";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface DataGuardProps<T> {
   data: T | undefined;
@@ -32,7 +32,8 @@ export function DataGuard<T>({
           Erreur de chargement
         </h3>
         <p className="text-gray-500 mb-4">
-          {error?.message || "Une erreur est survenue lors du chargement des données"}
+          {error?.message ||
+            "Une erreur est survenue lors du chargement des données"}
         </p>
         {onRetry && (
           <button

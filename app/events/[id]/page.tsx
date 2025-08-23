@@ -21,55 +21,10 @@ import {
   useUpdateEventStatus,
 } from "@/src/hooks/useEvent";
 import { useToast } from "@/src/hooks/useToast";
+import { EventStatus, UpdateEventData } from "@/src/types/event";
 import { ArrowLeft, Edit, Eye, FileText, Save, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-interface Event {
-  id: string;
-  name: string;
-  description?: string;
-  type: string;
-  date: string;
-  time?: string;
-  location?: string;
-  rules?: any;
-  status: string;
-  registrationCode: string;
-  maxTeams?: number;
-  maxPlayers?: number;
-  currentTeams: number;
-  totalPlayers: number;
-  organizer: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  teams: Array<{
-    id: string;
-    name: string;
-    description?: string;
-    sport?: string;
-    logo?: string;
-    playerCount: number;
-    createdAt: string;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface UpdateEventData {
-  name?: string;
-  description?: string;
-  type?: string;
-  date?: string;
-  time?: string;
-  location?: string;
-  rules?: any;
-  maxTeams?: number;
-  maxPlayers?: number;
-  status?: string;
-}
 
 const EVENT_TYPES = [
   { value: "MATCH", label: "Match" },
@@ -79,13 +34,40 @@ const EVENT_TYPES = [
 
 const EVENT_STATUSES = [
   {
-    value: "DRAFT",
+    value: "draft" as EventStatus,
     label: "Brouillon",
     color: "bg-yellow-100 text-yellow-800",
   },
-  { value: "ACTIVE", label: "Actif", color: "bg-green-100 text-green-800" },
-  { value: "COMPLETED", label: "Terminé", color: "bg-blue-100 text-blue-800" },
-  { value: "CANCELLED", label: "Annulé", color: "bg-red-100 text-red-800" },
+  {
+    value: "published" as EventStatus,
+    label: "Publié",
+    color: "bg-green-100 text-green-800",
+  },
+  {
+    value: "registration_open" as EventStatus,
+    label: "Inscriptions ouvertes",
+    color: "bg-blue-100 text-blue-800",
+  },
+  {
+    value: "registration_closed" as EventStatus,
+    label: "Inscriptions fermées",
+    color: "bg-orange-100 text-orange-800",
+  },
+  {
+    value: "in_progress" as EventStatus,
+    label: "En cours",
+    color: "bg-purple-100 text-purple-800",
+  },
+  {
+    value: "completed" as EventStatus,
+    label: "Terminé",
+    color: "bg-green-100 text-green-800",
+  },
+  {
+    value: "cancelled" as EventStatus,
+    label: "Annulé",
+    color: "bg-red-100 text-red-800",
+  },
 ];
 
 export default function EventDetailPage() {
@@ -133,7 +115,7 @@ export default function EventDetailPage() {
   );
 
   useEffect(() => {
-    if (event && !isEditing) {
+    if (event && isEditing) {
       setFormData({
         name: event.name,
         description: event.description || "",
@@ -144,7 +126,7 @@ export default function EventDetailPage() {
         rules: event.rules || {},
         maxTeams: event.maxTeams || 0,
         maxPlayers: event.maxPlayers || 0,
-        status: event.status,
+        status: event.status as EventStatus,
       });
     }
   }, [event, isEditing]);
@@ -161,7 +143,7 @@ export default function EventDetailPage() {
     updateEventMutation.mutate(formData);
   };
 
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = (status: EventStatus) => {
     updateStatusMutation.mutate(status);
   };
 
@@ -475,11 +457,11 @@ export default function EventDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="w-5 h-5" />
-                <span>Équipes inscrites ({event.teams.length})</span>
+                <span>Équipes inscrites ({event.teams?.length || 0})</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {event.teams.length === 0 ? (
+              {!event.teams || event.teams.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
                   Aucune équipe inscrite pour le moment
                 </p>
@@ -516,8 +498,8 @@ export default function EventDetailPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">
-                          {team.playerCount} joueur
-                          {team.playerCount > 1 ? "s" : ""}
+                          {team.playerCount || 0} joueur
+                          {(team.playerCount || 0) > 1 ? "s" : ""}
                         </p>
                         <p className="text-xs text-gray-400">
                           Inscrit le {formatDate(team.createdAt)}
@@ -650,9 +632,11 @@ export default function EventDetailPage() {
             <CardContent>
               <div className="space-y-2">
                 <p className="font-medium text-gray-900">
-                  {event.organizer.name}
+                  {event.organizer?.name || "N/A"}
                 </p>
-                <p className="text-sm text-gray-500">{event.organizer.email}</p>
+                <p className="text-sm text-gray-500">
+                  {event.organizer?.email || "N/A"}
+                </p>
                 <p className="text-xs text-gray-400">
                   Créé le {formatDate(event.createdAt)}
                 </p>

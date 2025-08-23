@@ -224,6 +224,7 @@ export async function GET(request: NextRequest) {
         0
       ),
       organizerId: event.organizerId, // Ajouter l'ID de l'organisateur
+      isPrivate: event.isPrivate, // Ajouter le champ isPrivate
       createdAt: event.createdAt,
       updatedAt: event.updatedAt,
     }));

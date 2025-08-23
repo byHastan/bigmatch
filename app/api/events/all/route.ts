@@ -1,8 +1,14 @@
+import { auth } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
@@ -12,9 +18,26 @@ export async function GET(request: NextRequest) {
     if (status) {
       where.status = status;
     }
-    // Sinon, récupérer tous les événements quel que soit leur statut
 
-    // Récupérer tous les événements publics
+    // Si l'utilisateur est connecté, il peut voir :
+    // 1. Tous les événements publics
+    // 2. Ses propres événements privés
+    if (session?.user?.id) {
+      where.OR = [
+        { isPrivate: false }, // Événements publics
+        {
+          AND: [
+            { isPrivate: true }, // Événements privés
+            { organizerId: session.user.id }, // Créés par l'utilisateur connecté
+          ],
+        },
+      ];
+    } else {
+      // Si l'utilisateur n'est pas connecté, seulement les événements publics
+      where.isPrivate = false;
+    }
+
+    // Récupérer les événements selon les filtres
     const events = await prisma.event.findMany({
       where,
       include: {
@@ -47,7 +70,8 @@ export async function GET(request: NextRequest) {
         (total, team) => total + team.players.length,
         0
       ),
-      organizerId: event.organizerId, // Ajouter l'ID de l'organisateur
+      organizerId: event.organizerId,
+      isPrivate: event.isPrivate, // Ajouter le champ isPrivate
       createdAt: event.createdAt,
       updatedAt: event.updatedAt,
     }));

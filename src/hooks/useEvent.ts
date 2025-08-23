@@ -1,40 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { eventsApi } from "../lib/api";
+import { EventStatus } from "../types/event";
 
-export interface Event {
-  id: string;
-  name: string;
-  description?: string;
-  type: string;
-  date: string;
-  time?: string;
-  location?: string;
-  rules?: any;
-  status: string;
-  registrationCode: string;
-  maxTeams?: number;
-  maxPlayers?: number;
-  currentTeams: number;
-  totalPlayers: number;
-  organizer: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  teams: Array<{
-    id: string;
-    name: string;
-    description?: string;
-    sport?: string;
-    logo?: string;
-    playerCount: number;
-    createdAt: string;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface UpdateEventData {
+interface UpdateEventDataLocal {
   name?: string;
   description?: string;
   type?: string;
@@ -44,7 +12,7 @@ interface UpdateEventData {
   rules?: any;
   maxTeams?: number;
   maxPlayers?: number;
-  status?: string;
+  status?: EventStatus;
 }
 
 export function useEvent(eventId: string) {
@@ -63,7 +31,7 @@ export function useUpdateEvent(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateEventData) => eventsApi.update(eventId, data),
+    mutationFn: (data: UpdateEventDataLocal) => eventsApi.update(eventId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -83,11 +51,11 @@ export function useUpdateEventStatus(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (status: string) =>
-      eventsApi.updateStatus(eventId, status as any),
+    mutationFn: (status: EventStatus) =>
+      eventsApi.updateStatus(eventId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["event", eventId] });
       onSuccess?.();
     },
     onError: (error: Error) => {
