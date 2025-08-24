@@ -10,7 +10,16 @@ import {
   TimerControl,
 } from "@/src/types/match";
 import { extractMatchRules } from "@/src/utils/match";
-import { ArrowLeft, Clock, MapPin, Settings } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  Copy,
+  ExternalLink,
+  MapPin,
+  Radio,
+  Settings,
+  Share2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import MatchTimer from "./MatchTimer";
 import ScoreBoard from "./ScoreBoard";
@@ -249,6 +258,109 @@ export default function MatchView({
                       manuellement
                     </p>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Lien de suivi en direct */}
+            {match.liveToken && (
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Radio className="h-6 w-6 text-red-600" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-900">
+                      Suivi en Direct
+                    </h3>
+                    <p className="text-sm text-red-700">
+                      Partagez ce lien pour permettre aux spectateurs de suivre
+                      le match en temps réel
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-red-100 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Radio className="h-4 w-4 text-red-500" />
+                    <span className="text-sm font-medium text-red-900">
+                      Lien de suivi public
+                    </span>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border">
+                    <code className="text-sm text-gray-800 break-all">
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/live/${match.liveToken}`
+                        : `/live/${match.liveToken}`}
+                    </code>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {/* Bouton copier le lien */}
+                  <Button
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        const liveUrl = `${window.location.origin}/live/${match.liveToken}`;
+                        navigator.clipboard.writeText(liveUrl);
+                        showSuccess("Lien copié dans le presse-papiers!");
+                      }
+                    }}
+                    variant="outline"
+                    className="flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copier le lien
+                  </Button>
+
+                  {/* Bouton ouvrir le lien */}
+                  <Button
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        const liveUrl = `${window.location.origin}/live/${match.liveToken}`;
+                        window.open(liveUrl, "_blank");
+                      }
+                    }}
+                    variant="outline"
+                    className="flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Ouvrir le suivi
+                  </Button>
+
+                  {/* Bouton partager natif (si supporté) */}
+                  <Button
+                    onClick={() => {
+                      if (typeof window !== "undefined" && navigator.share) {
+                        const liveUrl = `${window.location.origin}/live/${match.liveToken}`;
+                        navigator
+                          .share({
+                            title: `Match en direct - ${match.teamA?.name} vs ${match.teamB?.name}`,
+                            text: `Suivez le match en temps réel sur BigMatch`,
+                            url: liveUrl,
+                          })
+                          .catch(console.error);
+                      } else {
+                        showError(
+                          "Le partage natif n'est pas supporté sur ce navigateur"
+                        );
+                      }
+                    }}
+                    variant="default"
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Partager
+                  </Button>
+                </div>
+
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 text-blue-700 text-sm">
+                    <Clock className="h-4 w-4" />
+                    <span className="font-medium">Info:</span>
+                    <span>
+                      Ce lien permet de suivre les scores et le chronomètre en
+                      temps réel, sans nécessiter de connexion.
+                    </span>
+                  </div>
                 </div>
               </div>
             )}

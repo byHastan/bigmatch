@@ -248,7 +248,7 @@ export async function PUT(
       }
     }
 
-    // Mise à jour des règles avec le nouvel état du timer
+    // Mise à jour des règles avec le nouvel état du timer dans l'événement
     const updatedRules = {
       ...rules,
       match: {
@@ -257,9 +257,23 @@ export async function PUT(
       },
     };
 
-    updateMatchData.rules = updatedRules;
+    // Mise à jour séparée de l'événement avec les nouvelles règles
+    await prisma.event.update({
+      where: { id: match.event.id },
+      data: {
+        rules: updatedRules,
+        updatedAt: new Date(),
+      },
+    });
 
-    // Mettre à jour le match
+    console.log("🕐 Mise à jour du timer:", {
+      matchId,
+      action,
+      newTimerState,
+      matchStatus: updateMatchData.status,
+    });
+
+    // Mettre à jour le match (sans les rules)
     const updatedMatch = await prisma.match.update({
       where: { id: matchId },
       data: updateMatchData,

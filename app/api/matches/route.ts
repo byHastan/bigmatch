@@ -127,6 +127,7 @@ export async function GET(request: NextRequest) {
       startedAt: match.startedAt,
       completedAt: match.completedAt,
       parentMatchId: match.parentMatchId,
+      liveToken: match.liveToken,
       event: match.event,
       createdAt: match.createdAt,
       updatedAt: match.updatedAt,
@@ -177,6 +178,7 @@ export async function POST(request: NextRequest) {
       position,
       scheduledAt,
       parentMatchId,
+      createLiveLink,
     } = body;
 
     // Validation des champs obligatoires
@@ -256,19 +258,65 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Conversion et validation des champs numériques
+    let roundValue = null;
+    let positionValue = null;
+
+    if (round !== undefined && round !== null) {
+      const parsedRound = parseInt(String(round), 10);
+      if (isNaN(parsedRound) || parsedRound < 0) {
+        return NextResponse.json(
+          { error: "La valeur 'round' doit être un nombre entier positif" },
+          { status: 400 }
+        );
+      }
+      roundValue = parsedRound;
+    }
+
+    if (position !== undefined && position !== null) {
+      const parsedPosition = parseInt(String(position), 10);
+      if (isNaN(parsedPosition) || parsedPosition < 0) {
+        return NextResponse.json(
+          { error: "La valeur 'position' doit être un nombre entier positif" },
+          { status: 400 }
+        );
+      }
+      positionValue = parsedPosition;
+    }
+
+    // Générer un token unique pour le live link si demandé
+    let liveToken = null;
+    if (createLiveLink) {
+      liveToken = `live_${eventId}_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 15)}`;
+    }
+
+    console.log("🏗️ Création du match avec les données:", {
+      eventId,
+      teamAId,
+      teamBId,
+      round: roundValue,
+      position: positionValue,
+      scheduledAt,
+      createLiveLink,
+      liveToken,
+    });
+
     // Créer le match
     const match = await prisma.match.create({
       data: {
         eventId,
         teamAId: teamAId || null,
         teamBId: teamBId || null,
-        round: round || null,
-        position: position || null,
+        round: roundValue,
+        position: positionValue,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
         parentMatchId: parentMatchId || null,
         status: "SCHEDULED",
         scoreA: 0,
         scoreB: 0,
+        liveToken: liveToken,
       },
       include: {
         teamA: {
@@ -295,6 +343,7 @@ export async function POST(request: NextRequest) {
         position: match.position,
         status: match.status,
         scheduledAt: match.scheduledAt,
+        liveToken: match.liveToken,
         createdAt: match.createdAt,
       },
     });

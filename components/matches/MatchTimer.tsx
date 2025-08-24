@@ -10,9 +10,11 @@ import { useEffect, useState } from "react";
 
 interface MatchTimerProps {
   match: MatchWithTeams;
-  rules: MatchRules;
+  rules?: MatchRules;
   onTimerControl?: (control: TimerControl) => Promise<void>;
   canControlTimer?: boolean;
+  canControl?: boolean;
+  showControls?: boolean;
 }
 
 export default function MatchTimer({
@@ -20,14 +22,16 @@ export default function MatchTimer({
   rules,
   onTimerControl,
   canControlTimer = false,
+  canControl = false,
+  showControls = true,
 }: MatchTimerProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
   const [isControlling, setIsControlling] = useState(false);
   const { showSuccess, showError } = useToast();
 
-  // Durée totale en secondes
-  const totalDuration = rules.duration ? rules.duration * 60 : 15 * 60;
+  // Durée totale en secondes (valeur par défaut : 15 minutes)
+  const totalDuration = rules?.duration ? rules.duration * 60 : 15 * 60;
   const remainingTime = Math.max(0, totalDuration - currentTime);
   const progress = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
 
@@ -39,7 +43,7 @@ export default function MatchTimer({
           const newTime = prev + 1;
 
           // Vérification automatique de fin de temps
-          if (rules.gameMode === "TIME" && newTime >= totalDuration) {
+          if (rules?.gameMode === "TIME" && newTime >= totalDuration) {
             // Le match devrait se terminer automatiquement
             if (onTimerControl && canControlTimer) {
               onTimerControl({ action: "END", currentTime: totalDuration });
@@ -57,7 +61,7 @@ export default function MatchTimer({
     match.status,
     isPaused,
     totalDuration,
-    rules.gameMode,
+    rules?.gameMode,
     onTimerControl,
     canControlTimer,
   ]);
@@ -119,20 +123,20 @@ export default function MatchTimer({
       {/* Header avec mode de jeu */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          {rules.gameMode === "TIME" ? (
+          {rules?.gameMode === "TIME" ? (
             <Timer className="h-5 w-5 text-blue-600" />
           ) : (
             <Target className="h-5 w-5 text-green-600" />
           )}
           <h2 className="text-lg font-semibold">
-            {rules.gameMode === "TIME" ? "Mode Temps" : "Mode Points"}
+            {rules?.gameMode === "TIME" ? "Mode Temps" : "Mode Points"}
           </h2>
         </div>
 
-        <Badge variant={rules.gameMode === "TIME" ? "default" : "secondary"}>
-          {rules.gameMode === "TIME"
-            ? `${rules.duration || 15} minutes`
-            : `${rules.pointsToWin || 11} points`}
+        <Badge variant={rules?.gameMode === "TIME" ? "default" : "secondary"}>
+          {rules?.gameMode === "TIME"
+            ? `${rules?.duration || 15} minutes`
+            : `${rules?.pointsToWin || 11} points`}
         </Badge>
       </div>
 
@@ -140,20 +144,20 @@ export default function MatchTimer({
       <div className="text-center mb-6">
         <div className={`text-6xl font-mono font-bold mb-2 ${getTimerColor()}`}>
           {
-            rules.gameMode === "TIME"
+            rules?.gameMode === "TIME"
               ? formatTime(remainingTime) // Temps restant
               : formatTime(currentTime) // Temps écoulé
           }
         </div>
 
         <div className="text-sm text-gray-500 mb-4">
-          {rules.gameMode === "TIME"
+          {rules?.gameMode === "TIME"
             ? `Temps restant sur ${formatTime(totalDuration)}`
-            : `Temps écoulé • Limite: ${rules.pointsToWin} points`}
+            : `Temps écoulé • Limite: ${rules?.pointsToWin || 11} points`}
         </div>
 
         {/* Barre de progression */}
-        {rules.gameMode === "TIME" && (
+        {rules?.gameMode === "TIME" && (
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
             <div
               className={`h-2 rounded-full transition-all duration-1000 ${
@@ -170,7 +174,7 @@ export default function MatchTimer({
       </div>
 
       {/* Contrôles du timer */}
-      {canControlTimer && (
+      {(canControlTimer || canControl) && showControls && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {/* Bouton Start/Resume */}
           {(match.status === "SCHEDULED" ||
@@ -236,22 +240,22 @@ export default function MatchTimer({
           <div className="flex justify-between">
             <span className="text-gray-600">Mode de jeu:</span>
             <span className="font-medium">
-              {rules.gameMode === "TIME" ? "Au temps" : "Au score"}
+              {rules?.gameMode === "TIME" ? "Au temps" : "Au score"}
             </span>
           </div>
 
-          {rules.gameMode === "TIME" ? (
+          {rules?.gameMode === "TIME" ? (
             <div className="flex justify-between">
               <span className="text-gray-600">Durée du match:</span>
               <span className="font-medium">
-                {rules.duration || 15} minutes
+                {rules?.duration || 15} minutes
               </span>
             </div>
           ) : (
             <div className="flex justify-between">
               <span className="text-gray-600">Score à atteindre:</span>
               <span className="font-medium">
-                {rules.pointsToWin || 11} points
+                {rules?.pointsToWin || 11} points
               </span>
             </div>
           )}
@@ -259,7 +263,7 @@ export default function MatchTimer({
           <div className="flex justify-between">
             <span className="text-gray-600">Arrêt automatique:</span>
             <span className="font-medium">
-              {rules.shouldAutoEnd ? "Activé ✅" : "Désactivé ❌"}
+              {rules?.shouldAutoEnd ? "Activé ✅" : "Désactivé ❌"}
             </span>
           </div>
 
@@ -286,7 +290,7 @@ export default function MatchTimer({
       )}
 
       {/* Alertes temps réel */}
-      {rules.gameMode === "TIME" &&
+      {rules?.gameMode === "TIME" &&
         remainingTime <= 60 &&
         remainingTime > 0 && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">

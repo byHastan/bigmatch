@@ -23,7 +23,7 @@ export function useMatches(eventId: string) {
       }
 
       const data = await response.json();
-      return data.data.matches || [];
+      return data.data || [];
     },
     staleTime: 1 * 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -273,6 +273,7 @@ export function useCreateMatch() {
       round?: number;
       position?: number;
       scheduledAt?: Date;
+      createLiveLink?: boolean;
     }) => {
       const response = await fetch("/api/matches", {
         method: "POST",

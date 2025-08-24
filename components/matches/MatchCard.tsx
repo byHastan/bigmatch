@@ -3,7 +3,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MatchWithTeams } from "@/src/types/match";
-import { Clock, Eye, Pause, Play, Trophy } from "lucide-react";
+import {
+  Clock,
+  Copy,
+  ExternalLink,
+  Eye,
+  Pause,
+  Play,
+  Radio,
+  Trophy,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -216,6 +225,49 @@ export default function MatchCard({
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* Lien de suivi en direct */}
+      {match.liveToken && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs text-gray-600">
+              <Radio className="h-3 w-3 text-red-500" />
+              <span>Suivi en direct disponible</span>
+            </div>
+
+            <div className="flex gap-1">
+              {/* Bouton copier le lien */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const liveUrl = `${window.location.origin}/live/${match.liveToken}`;
+                  navigator.clipboard.writeText(liveUrl);
+                  // TODO: Ajouter un toast de confirmation
+                }}
+                className="text-xs px-2 py-1 h-auto"
+                title="Copier le lien de suivi"
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+
+              {/* Bouton ouvrir le lien */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const liveUrl = `${window.location.origin}/live/${match.liveToken}`;
+                  window.open(liveUrl, "_blank");
+                }}
+                className="text-xs px-2 py-1 h-auto"
+                title="Ouvrir le suivi en direct"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

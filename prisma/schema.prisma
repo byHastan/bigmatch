@@ -200,6 +200,9 @@ model Match {
   parentMatch   Match?  @relation("MatchTree", fields: [parentMatchId], references: [id])
   childMatches  Match[] @relation("MatchTree")
 
+  // Lien de suivi en direct
+  liveToken String? @unique // Token unique pour le suivi en direct public
+
   // Dates
   scheduledAt DateTime?
   startedAt   DateTime?

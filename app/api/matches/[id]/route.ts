@@ -113,6 +113,7 @@ export async function GET(
       completedAt: match.completedAt,
       parentMatch: match.parentMatch,
       childMatches: match.childMatches,
+      liveToken: match.liveToken,
       createdAt: match.createdAt,
       updatedAt: match.updatedAt,
     };

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateMatch } from "@/src/hooks/useMatches";
-import { ArrowLeft, Calendar, Clock, Users } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Radio, Users } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -28,6 +28,7 @@ interface FormData {
   round?: number;
   position?: number;
   scheduledAt?: string;
+  createLiveLink?: boolean;
 }
 
 export default function CreateMatchForm({
@@ -50,6 +51,7 @@ export default function CreateMatchForm({
 
   const teamAId = watch("teamAId");
   const teamBId = watch("teamBId");
+  const createLiveLink = watch("createLiveLink");
 
   const availableTeamsB = teams.filter((team) => team.id !== teamAId);
 
@@ -69,6 +71,7 @@ export default function CreateMatchForm({
         round: data.round || 1,
         position: data.position || 1,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
+        createLiveLink: data.createLiveLink || false,
       });
 
       onSuccess?.(result.data.id);
@@ -261,6 +264,44 @@ export default function CreateMatchForm({
                   type="datetime-local"
                   {...register("scheduledAt")}
                 />
+              </div>
+            </div>
+
+            {/* Options de suivi en direct */}
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-6 border border-red-200">
+              <div className="flex items-center gap-3 mb-4">
+                <Radio className="h-5 w-5 text-red-600" />
+                <h3 className="font-semibold text-red-900">Suivi en direct</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="createLiveLink"
+                    {...register("createLiveLink")}
+                    className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                  />
+                  <Label htmlFor="createLiveLink" className="text-gray-700">
+                    Créer un lien de suivi en direct pour ce match
+                  </Label>
+                </div>
+
+                {createLiveLink && (
+                  <div className="bg-white rounded-lg p-4 border border-red-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Radio className="h-4 w-4 text-red-500" />
+                      <span className="text-sm font-medium text-red-900">
+                        Lien de suivi en direct activé
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Un lien unique sera généré pour permettre aux spectateurs
+                      de suivre le match en temps réel. Le lien sera partageable
+                      et accessible sans connexion.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

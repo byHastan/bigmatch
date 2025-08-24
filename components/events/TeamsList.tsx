@@ -1,5 +1,6 @@
 import { Team } from "@/src/types/event";
-import { Users, Calendar, MapPin, Trophy } from "lucide-react";
+import { Calendar, Trophy, Users } from "lucide-react";
+import Image from "next/image";
 
 interface TeamsListProps {
   teams: Team[];
@@ -7,7 +8,11 @@ interface TeamsListProps {
   currentTeams: number;
 }
 
-export default function TeamsList({ teams, maxTeams, currentTeams }: TeamsListProps) {
+export default function TeamsList({
+  teams,
+  maxTeams,
+  currentTeams,
+}: TeamsListProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("fr-FR", {
@@ -39,12 +44,14 @@ export default function TeamsList({ teams, maxTeams, currentTeams }: TeamsListPr
           Aucune équipe inscrite
         </h3>
         <p className="text-gray-500 text-sm sm:text-base max-w-md mx-auto">
-          Les équipes apparaîtront ici une fois qu'elles s'inscriront à l'événement
+          Les équipes apparaîtront ici une fois qu'elles s'inscriront à
+          l'événement
         </p>
         {maxTeams && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg inline-block">
             <p className="text-sm text-blue-700">
-              <span className="font-medium">{maxTeams - currentTeams}</span> places restantes
+              <span className="font-medium">{maxTeams - currentTeams}</span>{" "}
+              places restantes
             </p>
           </div>
         )}
@@ -62,7 +69,9 @@ export default function TeamsList({ teams, maxTeams, currentTeams }: TeamsListPr
               Équipes inscrites
             </h3>
             <p className="text-sm text-gray-600">
-              {teams.length} équipe{teams.length > 1 ? "s" : ""} • {teams.reduce((acc, team) => acc + (team.playerCount || 0), 0)} joueurs
+              {teams.length} équipe{teams.length > 1 ? "s" : ""} •{" "}
+              {teams.reduce((acc, team) => acc + (team.playerCount || 0), 0)}{" "}
+              joueurs
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -93,13 +102,15 @@ export default function TeamsList({ teams, maxTeams, currentTeams }: TeamsListPr
         {teams.map((team, index) => (
           <div
             key={team.id}
-            className={`p-4 rounded-lg border-2 ${getTeamColor(index)} hover:shadow-md transition-all duration-200`}
+            className={`p-4 rounded-lg border-2 ${getTeamColor(
+              index
+            )} hover:shadow-md transition-all duration-200`}
           >
             {/* En-tête de l'équipe */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 {team.logo ? (
-                  <img
+                  <Image
                     src={team.logo}
                     alt={`Logo ${team.name}`}
                     className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-sm"
@@ -123,15 +134,19 @@ export default function TeamsList({ teams, maxTeams, currentTeams }: TeamsListPr
                   )}
                 </div>
               </div>
-              
+
               {/* Badge de position si c'est un championnat */}
               {index < 3 && (
                 <div className="flex-shrink-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                    index === 0 ? 'bg-yellow-500' : 
-                    index === 1 ? 'bg-gray-400' : 
-                    'bg-orange-500'
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                      index === 0
+                        ? "bg-yellow-500"
+                        : index === 1
+                        ? "bg-gray-400"
+                        : "bg-orange-500"
+                    }`}
+                  >
                     {index + 1}
                   </div>
                 </div>
@@ -208,14 +223,18 @@ export default function TeamsList({ teams, maxTeams, currentTeams }: TeamsListPr
       {/* Pied de page avec informations supplémentaires */}
       <div className="bg-gray-50 rounded-lg p-4 text-center">
         <p className="text-sm text-gray-600">
-          {teams.length} équipe{teams.length > 1 ? "s" : ""} inscrite{teams.length > 1 ? "s" : ""} sur {maxTeams || "∞"} possible{maxTeams ? "s" : ""}
+          {teams.length} équipe{teams.length > 1 ? "s" : ""} inscrite
+          {teams.length > 1 ? "s" : ""} sur {maxTeams || "∞"} possible
+          {maxTeams ? "s" : ""}
         </p>
         {maxTeams && (
           <div className="mt-2">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min((currentTeams / maxTeams) * 100, 100)}%` }}
+                style={{
+                  width: `${Math.min((currentTeams / maxTeams) * 100, 100)}%`,
+                }}
               ></div>
             </div>
             <p className="text-xs text-gray-500 mt-1">

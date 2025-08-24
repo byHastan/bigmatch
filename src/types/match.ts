@@ -14,6 +14,7 @@ export interface Match {
   scheduledAt: Date | null;
   startedAt: Date | null;
   completedAt: Date | null;
+  liveToken: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
