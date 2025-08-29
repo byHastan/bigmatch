@@ -118,7 +118,7 @@ export default function EventManagementCard({ event, onEdit, onDelete, onView }:
           text: `Rejoignez ${event.name} ! Code d'inscription: ${event.registrationCode}`,
           url: `${window.location.origin}/inscription/${event.registrationCode}`,
         });
-      } catch (err) {
+      } catch (err:any) {
         // Sharing was cancelled, no need to show an error
         if (err.name !== 'AbortError') {
           toast("Le partage a échoué. Veuillez réessayer.");
