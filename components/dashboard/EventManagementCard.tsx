@@ -1,7 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Event } from "@/src/types/event";
-import { Calendar, MapPin, Users, Crown, Edit, Trash2, Eye, Copy, Share2 } from "lucide-react";
+import { Calendar, MapPin, Crown, Edit, Trash2, Eye, Copy, Share2, Check } from "lucide-react";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/src/hooks/useToast";
+import { toast } from "sonner";
 
 interface EventManagementCardProps {
   event: Event;
@@ -12,6 +24,11 @@ interface EventManagementCardProps {
 
 export default function EventManagementCard({ event, onEdit, onDelete, onView }: EventManagementCardProps) {
   const [showActions, setShowActions] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -73,22 +90,45 @@ export default function EventManagementCard({ event, onEdit, onDelete, onView }:
     }
   };
 
-  const copyRegistrationCode = () => {
-    navigator.clipboard.writeText(event.registrationCode);
-    // TODO: Ajouter une notification de succès
+  const copyRegistrationCode = async () => {
+    try {
+      setIsCopying(true);
+      await navigator.clipboard.writeText(event.registrationCode);
+      setCopySuccess(true);
+      toast("Le code d'inscription a été copié dans le presse-papier.");
+      
+      // Reset the copy success state after 2 seconds
+      setTimeout(() => {
+        setCopySuccess(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Erreur lors de la copie:", err);
+      toast("Impossible de copier le code. Veuillez réessayer.");
+    } finally {
+      setIsCopying(false);
+    }
   };
 
-  const shareEvent = () => {
-    const shareData = {
-      title: event.name,
-      text: `Rejoignez ${event.name} ! Code d'inscription: ${event.registrationCode}`,
-      url: `${window.location.origin}/inscription/${event.registrationCode}`,
-    };
-    
+  const shareEvent = async () => {
     if (navigator.share) {
-      navigator.share(shareData);
+      try {
+        setIsSharing(true);
+        await navigator.share({
+          title: event.name,
+          text: `Rejoignez ${event.name} ! Code d'inscription: ${event.registrationCode}`,
+          url: `${window.location.origin}/inscription/${event.registrationCode}`,
+        });
+      } catch (err) {
+        // Sharing was cancelled, no need to show an error
+        if (err.name !== 'AbortError') {
+          toast("Le partage a échoué. Veuillez réessayer.");
+          console.error(err);
+        }
+      } finally {
+        setIsSharing(false);
+      }
     } else {
-      copyRegistrationCode();
+      await copyRegistrationCode();
     }
   };
 
@@ -165,9 +205,15 @@ export default function EventManagementCard({ event, onEdit, onDelete, onView }:
             variant="outline"
             size="sm"
             className="flex items-center space-x-2"
+            disabled={isCopying}
+            aria-label="Copier le code d'inscription"
           >
-            <Copy className="w-4 h-4" />
-            <span>Copier le code</span>
+            {copySuccess ? (
+              <Check className="w-4 h-4 text-green-600" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+            <span>{copySuccess ? 'Copié !' : 'Copier le code'}</span>
           </Button>
           
           <Button
@@ -175,6 +221,8 @@ export default function EventManagementCard({ event, onEdit, onDelete, onView }:
             variant="outline"
             size="sm"
             className="flex items-center space-x-2"
+            disabled={isSharing}
+            aria-label="Partager l'événement"
           >
             <Share2 className="w-4 h-4" />
             <span>Partager</span>
@@ -192,12 +240,33 @@ export default function EventManagementCard({ event, onEdit, onDelete, onView }:
           </Button>
           
           <Button
-            onClick={() => onDelete(event.id)}
+            onClick={() => setShowDeleteDialog(true)}
             variant="outline"
             className="border-red-300 text-red-600 hover:bg-red-50"
+            aria-label="Supprimer l'événement"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
+          
+          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Voulez-vous vraiment supprimer l'événement "{event.name}" ?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => onDelete(event.id)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Supprimer définitivement
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </div>

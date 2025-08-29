@@ -71,6 +71,29 @@ export default function CreateEventPage() {
   const [createdEvent, setCreatedEvent] = useState<any>(null);
   const [showPermissionError, setShowPermissionError] = useState(false);
 
+  // Function to calculate limits based on match format
+  const calculateMatchLimits = (format: string) => {
+    const limits = {
+      "1vs1": { teams: 2, players: 2 },
+      "2vs2": { teams: 2, players: 4 },
+      "3vs3": { teams: 2, players: 6 },
+      "5vs5": { teams: 2, players: 10 },
+    };
+    return limits[format as keyof typeof limits] || limits["1vs1"];
+  };
+
+  // Auto-update limits when event type or match format changes
+  useEffect(() => {
+    if (formData.type === "MATCH" && eventRules?.match?.format) {
+      const limits = calculateMatchLimits(eventRules.match.format);
+      setFormData(prev => ({
+        ...prev,
+        maxTeams: limits.teams,
+        maxPlayers: limits.players,
+      }));
+    }
+  }, [formData.type, eventRules?.match?.format]);
+
   // Vérifier l'authentification et le rôle
   useEffect(() => {
     if (!isSessionLoading && !isRoleLoading) {
@@ -307,51 +330,106 @@ export default function CreateEventPage() {
               eventType={formData.type}
               onRulesChange={setEventRules}
             />
-
             {/* Limites d'équipes et joueurs */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Limites de participation
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre max d'équipes
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.maxTeams || ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "maxTeams",
-                        e.target.value ? parseInt(e.target.value) : null
-                      )
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Illimité"
-                  />
+            {formData.type === "MATCH" ? (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Limites de participation
+                </h3>
+                
+                {/* Configuration automatique pour les matchs */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">ℹ</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">
+                        Configuration automatique
+                      </h4>
+                      <p className="text-sm text-blue-700">
+                        Pour un match, les limites sont automatiquement définies selon le format sélectionné :
+                      </p>
+                      <ul className="mt-2 text-sm text-blue-700 space-y-1">
+                        <li>• <strong>Équipes :</strong> Exactement 2 équipes (match direct)</li>
+                        <li>• <strong>Joueurs :</strong> Déterminé par le format (1vs1 = 2 joueurs, 2vs2 = 4 joueurs, etc.)</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre max de joueurs
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.maxPlayers || ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "maxPlayers",
-                        e.target.value ? parseInt(e.target.value) : null
-                      )
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Illimité"
-                  />
+
+                {/* Affichage des limites calculées */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre d'équipes
+                    </label>
+                    <div className="text-2xl font-bold text-gray-900">2</div>
+                    <p className="text-xs text-gray-500 mt-1">Fixe pour un match</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Total joueurs requis
+                    </label>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {eventRules?.match?.format === "1vs1" ? "2" :
+                       eventRules?.match?.format === "2vs2" ? "4" :
+                       eventRules?.match?.format === "3vs3" ? "6" :
+                       eventRules?.match?.format === "5vs5" ? "10" : "2"}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Basé sur le format {eventRules?.match?.format || "1vs1"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Limites de participation
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre max d'équipes
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.maxTeams || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "maxTeams",
+                          e.target.value ? parseInt(e.target.value) : null
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Illimité"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre max de joueurs
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.maxPlayers || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "maxPlayers",
+                          e.target.value ? parseInt(e.target.value) : null
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Illimité"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         );
       case 5:
