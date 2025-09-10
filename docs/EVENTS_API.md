@@ -26,7 +26,7 @@ Crée un nouvel événement avec génération automatique du code d'inscription.
 
 ```json
 {
-  "name": "Tournoi de Football 2024",
+  "name": "Tournoi de Basketball 2024",
   "description": "Tournoi annuel de football amateur",
   "type": "CUP",
   "date": "2024-12-15T14:00:00Z",
@@ -65,7 +65,7 @@ Crée un nouvel événement avec génération automatique du code d'inscription.
   "message": "Événement créé avec succès",
   "data": {
     "id": "uuid-de-l-evenement",
-    "name": "Tournoi de Football 2024",
+    "name": "Tournoi de Basketball 2024",
     "type": "CUP",
     "date": "2024-12-15T14:00:00Z",
     "registrationCode": "ABC123",
@@ -96,7 +96,7 @@ Récupère tous les événements créés par un organisateur spécifique.
   "data": [
     {
       "id": "uuid",
-      "name": "Tournoi de Football 2024",
+      "name": "Tournoi de Basketball 2024",
       "type": "CUP",
       "date": "2024-12-15T14:00:00Z",
       "status": "ACTIVE",
@@ -122,7 +122,7 @@ Récupère les détails complets d'un événement.
   "success": true,
   "data": {
     "id": "uuid",
-    "name": "Tournoi de Football 2024",
+    "name": "Tournoi de Basketball 2024",
     "description": "Tournoi annuel de football amateur",
     "type": "CUP",
     "date": "2024-12-15T14:00:00Z",
@@ -161,7 +161,7 @@ Met à jour les informations d'un événement existant.
 
 ```json
 {
-  "name": "Tournoi de Football 2024 - Mise à jour",
+  "name": "Tournoi de Basketball 2024 - Mise à jour",
   "description": "Description mise à jour",
   "type": "CUP",
   "date": "2024-12-20T14:00:00Z",
@@ -177,7 +177,7 @@ Met à jour les informations d'un événement existant.
   "message": "Événement mis à jour avec succès",
   "data": {
     "id": "uuid",
-    "name": "Tournoi de Football 2024 - Mise à jour",
+    "name": "Tournoi de Basketball 2024 - Mise à jour",
     "type": "CUP",
     "date": "2024-12-20T14:00:00Z",
     "status": "ACTIVE",
@@ -223,7 +223,7 @@ Change le statut d'un événement (DRAFT, ACTIVE, COMPLETED, CANCELLED).
   "message": "Événement activé avec succès - Les inscriptions sont maintenant ouvertes",
   "data": {
     "id": "uuid",
-    "name": "Tournoi de Football 2024",
+    "name": "Tournoi de Basketball 2024",
     "status": "ACTIVE",
     "updatedAt": "2024-01-16T15:30:00Z"
   }
@@ -243,7 +243,7 @@ Récupère les informations de statut et les actions disponibles.
   "success": true,
   "data": {
     "id": "uuid",
-    "name": "Tournoi de Football 2024",
+    "name": "Tournoi de Basketball 2024",
     "status": "DRAFT",
     "date": "2024-12-15T14:00:00Z",
     "registrationCode": "ABC123",
@@ -293,7 +293,7 @@ Recherche des événements avec filtres et pagination.
     "events": [
       {
         "id": "uuid",
-        "name": "Tournoi de Football 2024",
+        "name": "Tournoi de Basketball 2024",
         "type": "CUP",
         "date": "2024-12-15T14:00:00Z",
         "location": "Stade Municipal",

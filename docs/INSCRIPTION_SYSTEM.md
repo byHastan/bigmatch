@@ -84,7 +84,7 @@ Récupère les informations d'un événement via son code d'inscription.
   "success": true,
   "data": {
     "id": "uuid",
-    "name": "Tournoi de Football 2024",
+    "name": "Tournoi de Basketball 2024",
     "type": "CUP",
     "date": "2024-12-15T00:00:00Z",
     "maxTeams": 16,

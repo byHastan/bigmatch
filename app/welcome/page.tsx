@@ -81,8 +81,7 @@ export default function Welcome() {
     },
   ];
 
-  const handleContinue = async () => {
-    if (!selectedRole) return;
+  const handleRoleSelection = async (role: RoleType) => {
     if (!session?.user?.id) {
       console.error("Aucun utilisateur connecté");
       return;
@@ -90,19 +89,20 @@ export default function Welcome() {
 
     try {
       setIsSubmitting(true);
+      setSelectedRole(role);
 
       // Utiliser l'ID de l'utilisateur authentifié
       const userId = session.user.id;
 
-      await createUserRole(userId, selectedRole);
+      await createUserRole(userId, role);
 
       // Rediriger vers la vue correspondante
-      router.push(`/dashboard/${selectedRole.toLowerCase()}`);
+      router.push(`/dashboard/${role.toLowerCase()}`);
     } catch (error) {
       console.error("Erreur lors de la création du rôle:", error);
       // En cas d'erreur, on peut fallback sur cookies client
-      await saveRole(selectedRole.toLowerCase());
-      router.push(`/dashboard/${selectedRole.toLowerCase()}`);
+      await saveRole(role.toLowerCase());
+      router.push(`/dashboard/${role.toLowerCase()}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -170,40 +170,31 @@ export default function Welcome() {
                   icon={role.icon}
                   color={role.color}
                   isSelected={selectedRole === role.id}
-                  onClick={() => setSelectedRole(role.id)}
+                  onClick={() => handleRoleSelection(role.id)}
                 />
               </div>
             ))}
           </div>
 
-          {/* Continue Button avec animation */}
-          <div className="text-center animate-fade-in-up animation-delay-600">
-            <Button
-              onClick={handleContinue}
-              disabled={!selectedRole || isSubmitting}
-              className="px-10 py-4 text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                  Création...
-                </>
-              ) : (
-                <>
-                  Continuer
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Loading indicator when submitting */}
+          {isSubmitting && (
+            <div className="text-center animate-fade-in-up animation-delay-600">
+              <div className="inline-flex items-center space-x-3 bg-white/80 backdrop-blur-sm px-8 py-4 rounded-full shadow-lg">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <p className="text-gray-700 font-medium text-lg">
+                  Création de votre profil...
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Instructions avec animation */}
-          {!selectedRole && (
+          {!selectedRole && !isSubmitting && (
             <div className="text-center mt-12 animate-fade-in-up animation-delay-800">
               <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg">
                 <Target className="w-5 h-5 text-blue-600" />
                 <p className="text-gray-700 font-medium">
-                  Sélectionnez un rôle pour continuer
+                  Cliquez sur un rôle pour commencer
                 </p>
               </div>
             </div>

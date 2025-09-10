@@ -2,6 +2,16 @@ import { Team } from "@/src/types/event";
 import { Calendar, Trophy, Users } from "lucide-react";
 import Image from "next/image";
 
+// Fonction pour valider si une URL est valide
+const isValidUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 interface TeamsListProps {
   teams: Team[];
   maxTeams?: number;
@@ -109,9 +119,11 @@ export default function TeamsList({
             {/* En-tête de l'équipe */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
-                {team.logo ? (
+                {team.logo && isValidUrl(team.logo) ? (
                   <Image
                     src={team.logo}
+                    width={50}
+                    height={50}
                     alt={`Logo ${team.name}`}
                     className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-sm"
                   />

@@ -10,8 +10,11 @@ export default function HomeEventsList({ events }: HomeEventsListProps) {
   const { userRole } = useHybridUserRole();
   const currentUserId = userRole?.userId;
 
+  // Filtrer les événements terminés par défaut
+  const activeEvents = events?.filter(event => event.status !== "COMPLETED") || [];
+
   // Vérifier que events existe, est un tableau et n'est pas vide
-  if (!events || !Array.isArray(events) || events.length === 0) {
+  if (!activeEvents || !Array.isArray(activeEvents) || activeEvents.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -32,7 +35,7 @@ export default function HomeEventsList({ events }: HomeEventsListProps) {
 
   return (
     <div className="space-y-4">
-      {events.map((event) => (
+      {activeEvents.map((event) => (
         <HomeEventCard
           key={event.id}
           event={event}

@@ -61,7 +61,7 @@ export default function GestionInscriptionsPage() {
   const [events] = useState<Event[]>([
     {
       id: "1",
-      name: "Tournoi de Football 2024",
+      name: "Tournoi de Basketball 2024",
       type: "CUP",
       date: "15/12/2024",
       location: "Stade Municipal",

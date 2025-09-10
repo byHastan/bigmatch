@@ -57,6 +57,7 @@ export default function EventDetailPage() {
   const { userRole } = useSecureUserRole();
 
   const isOrganizer = userRole?.roleType === "ORGANISATEUR";
+  const isEventOwner = event?.organizer?.id === userRole?.userId;
 
   // Callback pour fermer le mode édition après la mise à jour
   const handleUpdateSuccess = () => {
@@ -181,23 +182,25 @@ export default function EventDetailPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour
           </Button>
-          <Button
-            variant={isEditing ? "outline" : "default"}
-            size="sm"
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            {isEditing ? (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Voir</span>
-              </>
-            ) : (
-              <>
-                <Edit className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Modifier</span>
-              </>
-            )}
-          </Button>
+          {isEventOwner && (
+            <Button
+              variant={isEditing ? "outline" : "default"}
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              {isEditing ? (
+                <>
+                  <Eye className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Voir</span>
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Modifier</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         <div className="text-center sm:text-left">
@@ -265,7 +268,7 @@ export default function EventDetailPage() {
                 </Button>
 
                 {/* Dashboard organisateur */}
-                {isOrganizer && (
+                {isEventOwner && (
                   <Button
                     onClick={() => router.push(`/events/${eventId}/dashboard`)}
                     className="w-full justify-start bg-blue-600 hover:bg-blue-700"
@@ -276,7 +279,7 @@ export default function EventDetailPage() {
                 )}
 
                 {/* Créer un match */}
-                {isOrganizer && (
+                {isEventOwner && (
                   <Button
                     onClick={() =>
                       router.push(`/events/${eventId}/matches/create`)
@@ -330,7 +333,7 @@ export default function EventDetailPage() {
                 <div className="mt-4 pt-4 border-t text-center">
                   <Trophy className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm text-gray-500">Aucun match créé</p>
-                  {isOrganizer && (
+                  {isEventOwner && (
                     <p className="text-xs text-gray-400 mt-1">
                       Créez votre premier match pour commencer
                     </p>
@@ -340,12 +343,14 @@ export default function EventDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Statut et actions rapides */}
-          <EventStatusActions
-            event={event}
-            onStatusChange={handleStatusChange}
-            isUpdatingStatus={updateStatusMutation.isPending}
-          />
+          {/* Statut et actions rapides - Seulement pour le propriétaire */}
+          {isEventOwner && (
+            <EventStatusActions
+              event={event}
+              onStatusChange={handleStatusChange}
+              isUpdatingStatus={updateStatusMutation.isPending}
+            />
+          )}
 
           {/* Statistiques - Mise en avant sur mobile */}
           <EventStats event={event} />

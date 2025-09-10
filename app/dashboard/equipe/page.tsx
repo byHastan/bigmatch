@@ -11,7 +11,7 @@ export default function EquipeDashboard() {
   const [availableEvents, setAvailableEvents] = useState([
     {
       id: 1,
-      name: "Tournoi de Football 2024",
+      name: "Tournoi de Basket-ball 2024",
       type: "CUP",
       date: "15/12/2024",
       participants: "8/16",

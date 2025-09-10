@@ -1,3 +1,4 @@
+import { auth } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -91,6 +92,18 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
     const {
@@ -106,9 +119,10 @@ export async function PUT(
       status,
     } = body;
 
-    // Vérifier que l'événement existe
+    // Vérifier que l'événement existe et que l'utilisateur est le propriétaire
     const existingEvent = await prisma.event.findUnique({
       where: { id },
+      include: { organizer: true },
     });
 
     if (!existingEvent) {
@@ -117,6 +131,16 @@ export async function PUT(
           error: "Événement non trouvé",
         },
         { status: 404 }
+      );
+    }
+
+    // Vérifier que l'utilisateur est le propriétaire de l'événement
+    if (existingEvent.organizerId !== session.user.id) {
+      return NextResponse.json(
+        {
+          error: "Vous n'êtes pas autorisé à modifier cet événement. Seul le propriétaire peut le modifier.",
+        },
+        { status: 403 }
       );
     }
 
@@ -233,12 +257,25 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Récupérer la session de l'utilisateur connecté
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
-    // Vérifier que l'événement existe
+    // Vérifier que l'événement existe et que l'utilisateur est le propriétaire
     const existingEvent = await prisma.event.findUnique({
       where: { id },
       include: {
+        organizer: true,
         teams: {
           include: {
             players: true,
@@ -253,6 +290,16 @@ export async function DELETE(
           error: "Événement non trouvé",
         },
         { status: 404 }
+      );
+    }
+
+    // Vérifier que l'utilisateur est le propriétaire de l'événement
+    if (existingEvent.organizerId !== session.user.id) {
+      return NextResponse.json(
+        {
+          error: "Vous n'êtes pas autorisé à supprimer cet événement. Seul le propriétaire peut le supprimer.",
+        },
+        { status: 403 }
       );
     }
 

@@ -78,7 +78,7 @@ export default function BasicInfoCard({
           <Label htmlFor="name">Nom de l'événement *</Label>
           <Input
             id="name"
-            placeholder="Ex: Tournoi de Football 2024"
+            placeholder="Ex: Tournoi de Basket-ball 2024"
             value={formData.name}
             onChange={(e) => onInputChange("name", e.target.value)}
             required
