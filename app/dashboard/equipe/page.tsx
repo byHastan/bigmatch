@@ -124,10 +124,20 @@ export default function EquipeDashboard() {
               <h2 className="text-xl font-semibold text-gray-900">
                 Rechercher des événements
               </h2>
-              <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
-                <Search className="h-4 w-4 mr-2" />
-                Rechercher
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => router.push("/create/match")}
+                  variant="outline"
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                >
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Match direct
+                </Button>
+                <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white">
+                  <Search className="h-4 w-4 mr-2" />
+                  Rechercher
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableEvents.map((event) => (

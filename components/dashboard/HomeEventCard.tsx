@@ -103,7 +103,7 @@ export default function HomeEventCard({
           {/* Badges d'information */}
           <div className="flex flex-wrap gap-2">
             <div className="bg-white text-orange-600 bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
-              {formatDate(event.date)} | {formatTime(event.date)}
+              Le {formatDate(event.date)} à {event.time || ""}
             </div>
             <div className="bg-white text-orange-600 bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
               <Users className="w-3 h-3" />
