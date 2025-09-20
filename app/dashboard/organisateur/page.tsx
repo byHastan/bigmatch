@@ -43,14 +43,24 @@ export default function OrganisateurDashboard() {
               <h3 className="text-xl font-bold text-gray-900">
                 Bienvenue, <span className="text-orange-600">Organisateur</span>
               </h3>
-              <Button
-                onClick={() => router.push("/dashboard/organisateur/events")}
-                variant="outline"
-                className="text-orange-600 border-orange-300 hover:bg-orange-50"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Gérer mes événements
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                <Button
+                  onClick={() => router.push("/dashboard/organisateur/events")}
+                  variant="outline"
+                  className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Gérer mes événements
+                </Button>
+                <Button
+                  onClick={() => router.push("/create/match")}
+                  variant="outline"
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Match direct
+                </Button>
+              </div>
             </div>
             {allEventsLoading ? (
               <LoadingSpinner />

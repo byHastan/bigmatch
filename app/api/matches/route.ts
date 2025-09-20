@@ -21,14 +21,68 @@ export async function GET(request: NextRequest) {
     const eventId = searchParams.get("eventId");
     const status = searchParams.get("status");
     const round = searchParams.get("round");
+    const standalone = searchParams.get("standalone");
 
-    // Validation du paramètre eventId
+    // Si standalone=true, récupérer les matchs sans événement
+    if (standalone === "true") {
+      const matches = await prisma.match.findMany({
+        where: {
+          eventId: null, // Matchs standalone
+        },
+        include: {
+          teamA: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              description: true,
+              sport: true,
+              players: {
+                select: {
+                  id: true,
+                  name: true,
+                  position: true,
+                  number: true,
+                },
+              },
+            },
+          },
+          teamB: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              description: true,
+              sport: true,
+              players: {
+                select: {
+                  id: true,
+                  name: true,
+                  position: true,
+                  number: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: matches,
+      });
+    }
+
+    // Validation du paramètre eventId pour les matchs d'événements
     if (!eventId) {
       return NextResponse.json(
         {
           error: "eventId requis",
           message:
-            "Utilisez ?eventId=<id> pour récupérer les matchs d'un événement",
+            "Utilisez ?eventId=<id> pour récupérer les matchs d'un événement ou ?standalone=true pour les matchs standalone",
         },
         { status: 400 }
       );

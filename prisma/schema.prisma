@@ -142,8 +142,8 @@ model Team {
   description String?
   logo        String?
   sport       String?
-  eventId     String
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String?
+  event       Event?    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   players     Player[]
 
   // Relations pour les matchs
@@ -175,8 +175,8 @@ model Player {
 
 model Match {
   id      String @id @default(uuid())
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   // Équipes participantes
   teamAId String?

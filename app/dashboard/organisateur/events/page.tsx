@@ -186,7 +186,7 @@ export default function EventManagementPage() {
             transition={{ duration: 0.3 }}
             className="mb-8"
           >
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+            <div className="flex flex-col gap-3 md:flex-row items-start md:items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   Gestion des Événements
@@ -197,7 +197,8 @@ export default function EventManagementPage() {
               </div>
               <Button
                 onClick={handleCreateEvent}
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-xl font-semibold"
+                variant="outline"
+                className="text-orange-600 border-orange-300 hover:bg-orange-50 md:w-auto w-full"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Créer un événement

@@ -306,6 +306,89 @@ export function useCreateMatch() {
   });
 }
 
+// Hook pour créer un match standalone
+export function useCreateStandaloneMatch() {
+  const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
+
+  return useMutation({
+    mutationFn: async (matchData: {
+      teamA: {
+        name: string;
+        description?: string;
+        logo?: string;
+        players?: Array<{
+          name: string;
+          position?: string;
+          number?: number;
+        }>;
+      };
+      teamB: {
+        name: string;
+        description?: string;
+        logo?: string;
+        players?: Array<{
+          name: string;
+          position?: string;
+          number?: number;
+        }>;
+      };
+      matchName?: string;
+      sport?: string;
+      scheduledAt?: string;
+      createLiveLink?: boolean;
+    }) => {
+      const response = await fetch("/api/matches/standalone", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(matchData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          error.error || "Erreur lors de la création du match standalone"
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      showSuccess("Match standalone créé avec succès");
+
+      // Invalider les queries des matchs génériques
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+      queryClient.invalidateQueries({ queryKey: ["standalone-matches"] });
+    },
+    onError: (err) => {
+      showError(err.message);
+    },
+  });
+}
+
+// Hook pour récupérer les matchs standalone
+export function useStandaloneMatches() {
+  return useQuery({
+    queryKey: ["standalone-matches"],
+    queryFn: async () => {
+      const response = await fetch("/api/matches?standalone=true", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des matchs standalone");
+      }
+
+      return response.json();
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
 // Hook pour supprimer un match
 export function useDeleteMatch() {
   const queryClient = useQueryClient();
