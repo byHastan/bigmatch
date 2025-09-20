@@ -5,7 +5,7 @@ import { userRolesApi } from "@/src/lib/api";
 import { useSession } from "@/src/lib/auth-client";
 import apiClient from "@/src/lib/axios";
 import { UserRoleCookieService } from "@/src/lib/client-cookies";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface UserRole {
   id: string;
@@ -115,7 +115,7 @@ export function useHybridUserRole() {
   /**
    * Migration depuis localStorage
    */
-  const migrateFromLocalStorage = async (): Promise<string | null> => {
+  const migrateFromLocalStorage = useCallback(async (): Promise<string | null> => {
     if (typeof window === "undefined") return null;
 
     try {
@@ -138,12 +138,12 @@ export function useHybridUserRole() {
       console.error("Erreur lors de la migration depuis localStorage:", error);
     }
     return null;
-  };
+  }, []);
 
   /**
    * Sauvegarder le rôle de manière hybride (serveur d'abord, client en fallback)
    */
-  const saveRole = async (role: string): Promise<void> => {
+  const saveRole = useCallback(async (role: string): Promise<void> => {
     // Essayer le serveur d'abord (plus sécurisé)
     const serverSuccess = await saveSecureRoleToServer(role);
 
@@ -151,12 +151,12 @@ export function useHybridUserRole() {
       // Fallback sur cookies client
       saveSecureRoleToClient(role);
     }
-  };
+  }, []);
 
   /**
    * Récupérer le rôle de manière hybride
    */
-  const getRole = async (): Promise<string | null> => {
+  const getRole = useCallback(async (): Promise<string | null> => {
     // Essayer le serveur d'abord
     let role = await getSecureRoleFromServer();
 
@@ -166,12 +166,12 @@ export function useHybridUserRole() {
     }
 
     return role;
-  };
+  }, []);
 
   /**
    * Supprimer le rôle de manière hybride
    */
-  const clearRole = async (): Promise<void> => {
+  const clearRole = useCallback(async (): Promise<void> => {
     // Supprimer du serveur
     await clearSecureRoleFromServer();
 
@@ -181,7 +181,7 @@ export function useHybridUserRole() {
     } catch (error) {
       console.error("Erreur lors du nettoyage client:", error);
     }
-  };
+  }, []);
 
   /**
    * Récupérer le rôle utilisateur depuis l'API avec cache
@@ -275,7 +275,7 @@ export function useHybridUserRole() {
     };
 
     initializeUserRole();
-  }, [session, isSessionLoading]);
+  }, [session, isSessionLoading, userRole, getRole, saveRole, migrateFromLocalStorage, clearRole]);
 
   /**
    * Créer un nouveau rôle pour l'utilisateur

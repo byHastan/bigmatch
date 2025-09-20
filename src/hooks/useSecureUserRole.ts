@@ -4,7 +4,7 @@ import { RoleType } from "@/src/generated/prisma";
 import { userRolesApi } from "@/src/lib/api";
 import { useSession } from "@/src/lib/auth-client";
 import { UserRoleCookieService } from "@/src/lib/client-cookies";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface UserRole {
   id: string;
@@ -80,7 +80,7 @@ export function useSecureUserRole() {
   /**
    * Migration depuis localStorage vers cookies sécurisés
    */
-  const migrateFromLocalStorage = () => {
+  const migrateFromLocalStorage = useCallback(() => {
     if (typeof window === "undefined") return null;
 
     try {
@@ -97,7 +97,7 @@ export function useSecureUserRole() {
       console.error("Erreur lors de la migration depuis localStorage:", error);
     }
     return null;
-  };
+  }, []);
 
   /**
    * Récupérer le rôle utilisateur depuis l'API
@@ -166,7 +166,7 @@ export function useSecureUserRole() {
     };
 
     initializeUserRole();
-  }, [session, isSessionLoading]);
+  }, [session, isSessionLoading, migrateFromLocalStorage]);
 
   /**
    * Créer un nouveau rôle pour l'utilisateur
