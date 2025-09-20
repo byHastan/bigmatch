@@ -68,10 +68,9 @@ export default function MatchPage() {
 
   return (
     <MatchView
-      match={match}
+      matchId={matchId}
+      initialData={match}
       canModify={canModify}
-      onScoreUpdate={handleScoreUpdate}
-      onTimerControl={handleTimerControl}
       onBack={handleBack}
     />
   );

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Trophy, Users } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 
 export default function MatchPage() {
@@ -136,9 +137,11 @@ export default function MatchPage() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                   {matchData.teamA?.logo ? (
-                    <img
+                    <Image
                       src={matchData.teamA.logo}
                       alt={matchData.teamA.name}
+                      width={10}
+                      height={10}
                       className="w-10 h-10 object-cover rounded-full"
                     />
                   ) : (
@@ -191,9 +194,11 @@ export default function MatchPage() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                   {matchData.teamB?.logo ? (
-                    <img
+                    <Image
                       src={matchData.teamB.logo}
                       alt={matchData.teamB.name}
+                      width={10}
+                      height={10}
                       className="w-10 h-10 object-cover rounded-full"
                     />
                   ) : (

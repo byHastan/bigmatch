@@ -86,6 +86,13 @@ export async function PUT(
     }
 
     // Vérification des permissions (seul l'organisateur peut modifier les scores)
+    if (!match.event) {
+      return NextResponse.json(
+        { error: "L'événement associé au match est introuvable" },
+        { status: 404 }
+      );
+    }
+    
     if (match.event.organizerId !== session.user.id) {
       return NextResponse.json(
         { error: "Seul l'organisateur peut modifier les scores" },
@@ -324,26 +331,57 @@ export async function GET(
       return NextResponse.json({ error: "Match non trouvé" }, { status: 404 });
     }
 
+    // Vérification de l'existence de l'événement
+    if (!match.event) {
+      return NextResponse.json(
+        { error: "L'événement associé au match est introuvable" },
+        { status: 404 }
+      );
+    }
+
     // Vérification des permissions (organisateur ou participants)
     const isOrganizer = match.event.organizerId === session.user.id;
+    
+    // Vérifier si l'utilisateur est un participant dans l'une des équipes
+    const teams = [match.teamA, match.teamB].filter(Boolean);
+    const teamIds = teams.map(team => team?.id).filter(Boolean) as string[];
+    
+    // Vérifier si l'utilisateur est membre d'une des équipes du match
+    const userTeams = await prisma.team.findMany({
+      where: {
+        id: { in: teamIds },
+        players: {
+          some: {
+            id: session.user.id
+          }
+        }
+      },
+      select: { id: true }
+    });
+    
+    const isParticipant = userTeams.length > 0;
 
-    // TODO: Ajouter la vérification si l'utilisateur est participant
-    if (!isOrganizer) {
+    if (!isOrganizer && !isParticipant) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
-    // Extraire les règles du match
-    const rules = match.event.rules as any;
-    let matchRules = null;
-
-    if (rules && rules.match) {
-      matchRules = {
-        gameMode: rules.match.gameMode || "TIME",
-        duration: rules.match.duration || 15,
-        pointsToWin: rules.match.pointsToWin || 11,
-        shouldAutoEnd: rules.match.shouldAutoEnd !== false,
+    // Extraire les règles du match de manière sécurisée
+    interface MatchRules {
+      match?: {
+        gameMode?: string;
+        duration?: number;
+        pointsToWin?: number;
+        shouldAutoEnd?: boolean;
       };
     }
+
+    const rules = (match.event.rules || {}) as MatchRules;
+    const matchRules = rules.match ? {
+      gameMode: rules.match.gameMode || "TIME",
+      duration: rules.match.duration || 15,
+      pointsToWin: rules.match.pointsToWin || 11,
+      shouldAutoEnd: rules.match.shouldAutoEnd !== false,
+    } : null;
 
     return NextResponse.json({
       success: true,

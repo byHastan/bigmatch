@@ -78,6 +78,14 @@ export async function PUT(
       return NextResponse.json({ error: "Match non trouvé" }, { status: 404 });
     }
 
+    // Vérification de l'existence de l'événement
+    if (!match.event) {
+      return NextResponse.json(
+        { error: "L'événement associé au match est introuvable" },
+        { status: 404 }
+      );
+    }
+
     // Vérification des permissions (seul l'organisateur peut contrôler le timer)
     if (match.event.organizerId !== session.user.id) {
       return NextResponse.json(
@@ -394,11 +402,35 @@ export async function GET(
       return NextResponse.json({ error: "Match non trouvé" }, { status: 404 });
     }
 
+    // Vérification de l'existence de l'événement
+    if (!match.event) {
+      return NextResponse.json(
+        { error: "L'événement associé au match est introuvable" },
+        { status: 404 }
+      );
+    }
+
     // Vérification des permissions (organisateur ou participants)
     const isOrganizer = match.event.organizerId === session.user.id;
+    const teams = [match.teamA, match.teamB].filter(Boolean);
+    const teamIds = teams.map(team => team?.id).filter(Boolean) as string[];
+    
+    // Vérifier si l'utilisateur est membre d'une des équipes du match
+    const userTeams = await prisma.team.findMany({
+      where: {
+        id: { in: teamIds },
+        players: {
+          some: {
+            id: session.user.id
+          }
+        }
+      },
+      select: { id: true }
+    });
+    
+    const isParticipant = userTeams.length > 0;
 
-    // TODO: Ajouter la vérification si l'utilisateur est participant
-    if (!isOrganizer) {
+    if (!isOrganizer && !isParticipant) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -448,8 +480,9 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: {
-        matchId: match.id,
-        status: match.status,
+        id: match.id,
+        eventId: match.event?.id || null,
+        eventName: match.event?.name || 'Événement inconnu',
         teamA: match.teamA,
         teamB: match.teamB,
         scoreA: match.scoreA,
