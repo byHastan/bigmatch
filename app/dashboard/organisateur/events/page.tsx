@@ -64,8 +64,7 @@ export default function EventManagementPage() {
 
   // Gestionnaires d'actions
   const handleEditEvent = (eventId: string) => {
-    // TODO: Naviguer vers la page d'édition
-    console.log(`Modifier l'événement ${eventId}`);
+    router.push(`/events/${eventId}?edit=true`);
   };
 
   const handleDeleteEvent = (eventId: string) => {
@@ -82,15 +81,38 @@ export default function EventManagementPage() {
     }
   };
 
-  const confirmDeleteEvent = () => {
-    // TODO: Implémenter la suppression via l'API
-    console.log(`Supprimer l'événement ${deleteModal.eventId}`);
-    setDeleteModal({ isOpen: false, eventId: "", eventName: "" });
+  const confirmDeleteEvent = async () => {
+    try {
+      const response = await fetch(`/api/events/${deleteModal.eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Échec de la suppression de l\'événement');
+      }
+
+      // Rafraîchir la liste des événements
+      refetch();
+      
+      // Afficher un message de succès
+      if (typeof window !== 'undefined') {
+        alert('Événement supprimé avec succès');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'événement:', error);
+      if (typeof window !== 'undefined') {
+        alert('Erreur lors de la suppression de l\'événement. Veuillez réessayer.');
+      }
+    } finally {
+      setDeleteModal({ isOpen: false, eventId: "", eventName: "" });
+    }
   };
 
   const handleViewEvent = (eventId: string) => {
-    // TODO: Naviguer vers la page de détail de l'événement
-    console.log(`Voir l'événement ${eventId}`);
+    router.push(`/events/${eventId}`);
   };
 
   const handleCreateEvent = () => {

@@ -29,7 +29,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const EVENT_TYPES = [
@@ -41,14 +41,20 @@ const EVENT_TYPES = [
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UpdateEventData>({});
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
   const eventId = params.id as string;
+  const searchParams = useSearchParams();
+  
+  // Vérifier si le mode édition est activé via l'URL
+  const isEditMode = searchParams.get('edit') === 'true';
 
   // Récupérer l'événement
   const { data: event, isLoading, error } = useEvent(eventId);
+  
+  // État local pour le mode édition
+  const [isEditing, setIsEditing] = useState(isEditMode);
 
   // Récupérer les matchs pour les statistiques
   const { data: matches } = useMatches(eventId);
